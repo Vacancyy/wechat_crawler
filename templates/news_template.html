@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【谢站长之家】{{date}}（{{weekday}}）三分钟新闻早餐</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+        .container {
+            max-width: 677px;
+            margin: 0 auto;
+            background: #fff;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        .header {
+            padding: 30px 20px 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        .meta {
+            font-size: 14px;
+            color: #999;
+        }
+        .meta span { margin: 0 8px; }
+        .author { color: #576b95; }
+        
+        .content { padding: 20px; }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 15px auto;
+            border-radius: 4px;
+        }
+        .content p {
+            margin-bottom: 12px;
+            text-align: justify;
+            text-indent: 0;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #c00000;
+            margin: 25px 0 15px;
+            font-size: 17px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #c00000;
+        }
+        .news-item {
+            margin-bottom: 10px;
+            line-height: 1.9;
+        }
+        .tag { color: #576b95; font-weight: 500; }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #ddd, transparent);
+            margin: 25px 0;
+        }
+        .separator-img { margin: 20px 0 !important; }
+        .section-divider {
+            text-align: center;
+            margin: 30px 0;
+            padding: 10px 0;
+        }
+        .section-divider img {
+            max-width: 80%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .template-divider {
+            display: block;
+            margin: 25px auto;
+            max-width: 100%;
+        }
+        .title-image {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .title-image img, .section-title-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 15px auto;
+        }
+        
+        .footer {
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #999;
+            border-top: 1px solid #eee;
+            margin-top: 30px;
+        }
+        
+        /* 推荐商品样式 */
+        .promo-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            color: #fff;
+        }
+        .promo-card .product-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .promo-card .product-desc {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        .promo-card .product-features {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .promo-card .product-features li {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #ddd;
+        }
+        .promo-card .price {
+            font-size: 24px;
+            color: #ffd700;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .promo-card .price .original {
+            font-size: 14px;
+            color: #999;
+            text-decoration: line-through;
+            margin-left: 10px;
+        }
+        .promo-card .gift {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        .promo-card .buy-btn {
+            display: inline-block;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 40px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        /* 模板素材样式 */
+        .template-header {
+            width: 100%;
+            margin: 0 0 20px 0;
+            border-radius: 0;
+        }
+        .template-divider {
+            width: 100%;
+            margin: 25px auto;
+            height: auto;
+        }
+        .template-footer {
+            max-width: 200px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>【谢站长之家】{{date}}（{{weekday}}）三分钟新闻早餐</h1>
+            <div class="meta">
+                <span class="author">谢站长之家</span>
+                <span>{{date}} 06:30</span>
+                <span>江苏南京</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            {{header_image}}
+            {{ad_top}}
+            {{news_content}}
+            <div class="divider"></div>
+            {{ad_bottom}}
+            {{template_footer}}
+        </div>
+        
+        <div class="footer">
+            <p style="font-size: 12px; color: #999;">编辑：谢站长</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #999;">生成于 {{generated_time}}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+/**
+ * 初始化数据库
+ */
+
+import { initDatabase, getArticleCount, getImageCount, upsertAd } from './server/db.js';
+
+console.log('🚀 初始化数据库...\n');
+
+// 初始化表结构
+initDatabase();
+
+// 插入默认广告配置
+const defaultAds = [
+  {
+    position: 'top',
+    product_name: 'iPhone 17 Pro Max',
+    description: '苹果最新旗舰，2026年首款搭载 A20 芯片的智能手机',
+    price: '8,999',
+    original_price: '9,999',
+    features: JSON.stringify([
+      'A20 仿生芯片，性能提升 40%',
+      '2 亿像素主摄，支持 8K 视频录制',
+      '钛合金机身，续航提升 50%',
+      '6.9 英寸超视网膜 XDR 显示屏',
+      '全新超瓷晶面板，抗摔能力翻倍'
+    ]),
+    gift: '限时特惠：下单即送 AirPods Pro 3 + MagSafe 充电器',
+    buy_link: '#商品链接',
+    image_path: null
+  },
+  {
+    position: 'bottom',
+    product_name: 'iPhone 17 Pro Max',
+    description: '限时特惠活动进行中，错过再等一年！',
+    price: '8,999',
+    original_price: '9,999',
+    features: JSON.stringify([
+      'A20 仿生芯片，性能提升 40%',
+      '2 亿像素主摄，支持 8K 视频录制',
+      '钛合金机身，续航提升 50%',
+      '下单即送 AirPods Pro 3'
+    ]),
+    gift: null,
+    buy_link: '#商品链接',
+    image_path: null
+  }
+];
+
+defaultAds.forEach(ad => {
+  upsertAd(ad);
+  console.log(`✅ 已创建广告: ${ad.position}`);
+});
+
+console.log(`\n📊 数据库统计:`);
+console.log(`   文章: ${getArticleCount()} 篇`);
+console.log(`   图片: ${getImageCount()} 张`);
+console.log(`\n✅ 数据库初始化完成！`);

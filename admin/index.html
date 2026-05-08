@@ -1,0 +1,4611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公众号运营系统 - 管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #4a6cf7;
+      --primary-dark: #3b5de7;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --sidebar-width: 220px;
+      --header-height: 60px;
+      --border: #e5e7eb;
+      --bg: #f5f7fa;
+      --text: #1f2937;
+      --text-light: #6b7280;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+    }
+    
+    .app-container { display: flex; min-height: 100vh; }
+    
+    /* 侧边栏 */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      color: #fff;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-header h1 { font-size: 16px; font-weight: 600; }
+    
+    .sidebar-section {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .sidebar-section-title {
+      padding: 10px 20px 5px;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+    }
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    
+    .menu-item:hover {
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+    }
+    
+    .menu-item.active {
+      background: rgba(74, 108, 247, 0.2);
+      color: #fff;
+      border-left-color: var(--primary);
+    }
+    
+    .menu-icon { font-size: 16px; width: 28px; text-align: center; }
+    .menu-label { margin-left: 10px; font-size: 14px; }
+    .menu-badge { 
+      margin-left: auto;
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    
+    /* 主内容 */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 头部 */
+    .header {
+      height: var(--header-height);
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    
+    .header h2 { font-size: 18px; font-weight: 600; }
+    .header-actions { display: flex; gap: 10px; }
+    
+    /* 内容区 */
+    .page-content { padding: 24px; flex: 1; }
+    
+    /* 卡片 */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card-header h3 { font-size: 16px; font-weight: 600; }
+    .card-body { padding: 20px; }
+    
+    /* 按钮 */
+    .btn {
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .btn-outline { background: transparent; border-color: var(--primary); color: var(--primary); }
+    .btn-outline:hover { background: var(--primary); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-icon { padding: 8px; border: none; background: transparent; cursor: pointer; font-size: 16px; }
+    .btn-icon:hover { background: var(--bg); }
+    
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--bg); font-weight: 600; font-size: 13px; color: var(--text-light); }
+    tr:hover td { background: #f9fafb; }
+    
+    /* 表单 */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    
+    /* 标签 */
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .tag-success { background: #d1fae5; color: #059669; }
+    .tag-warning { background: #fef3c7; color: #d97706; }
+    .tag-info { background: #dbeafe; color: #2563eb; }
+    
+    /* ========== 仪表盘 ========== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon { font-size: 40px; }
+    .stat-info h4 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .stat-info span { font-size: 13px; color: var(--text-light); }
+    
+    /* ========== 文章列表 ========== */
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .article-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .article-card-header {
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    
+    .article-card-header h3 { font-size: 18px; margin-bottom: 4px; }
+    .article-card-header span { font-size: 12px; opacity: 0.8; }
+    
+    .article-card-body { padding: 16px 20px; }
+    .article-card-actions { display: flex; gap: 8px; }
+    
+    /* ========== 图片管理 ========== */
+    .images-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .date-picker { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; }
+    
+    /* ========== 图片管理 - 新布局 ========== */
+    .images-layout {
+      display: flex;
+      gap: 20px;
+      min-height: calc(100vh - 140px);
+    }
+    
+    .images-sidebar {
+      width: 260px;
+      flex-shrink: 0;
+    }
+    
+    .images-main {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .images-category {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 2px solid var(--primary);
+    }
+    
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .category-badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 12px;
+      font-weight: normal;
+    }
+    
+    .category-desc {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    
+    .category-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .images-divider {
+      padding: 16px 0;
+      font-size: 14px;
+      color: var(--text-light);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      margin-top: 8px;
+    }
+    
+    .images-category-group {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .group-header {
+      padding: 14px 18px;
+      background: var(--bg);
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .group-items {
+      padding: 10px;
+    }
+    
+    .category-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 6px;
+    }
+    
+    .category-item:hover {
+      background: var(--bg);
+    }
+    
+    .category-item.active {
+      background: rgba(74, 108, 247, 0.1);
+      color: var(--primary);
+    }
+    
+    .item-label {
+      flex: 1;
+      font-size: 14px;
+    }
+    
+    .item-count {
+      font-size: 12px;
+      color: var(--text-light);
+      background: var(--bg);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    
+    .images-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .images-toolbar h3 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .image-card .overlay-type {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--primary);
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+    
+    .image-card .overlay-desc {
+      font-size: 11px;
+    }
+    
+    /* 开关样式 */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+      background-color: var(--success);
+    }
+    
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+    
+    /* 上传成功提示 */
+    .toast-success {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--success);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 9999;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @media (max-width: 900px) {
+      .images-layout { flex-direction: column; }
+      .images-sidebar { width: 100%; }
+    }
+    
+    .images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      justify-items: center;
+    }
+    
+    .image-card {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f0f0f0;
+      aspect-ratio: 1;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .image-card:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .image-card.selected { outline: 3px solid var(--primary); }
+    .image-card img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .image-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 11px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .image-card:hover .image-card-overlay { opacity: 1; }
+    
+    .image-info {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    
+    .image-checkbox {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      border: 2px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: bold;
+      opacity: 0.7;
+      transition: all 0.2s;
+      cursor: pointer;
+      z-index: 10;
+    }
+    
+    .image-card:hover .image-checkbox { opacity: 1; border-color: #aaa; }
+    .image-card.selected .image-checkbox { 
+      opacity: 1;
+      background: var(--primary); 
+      color: #fff; 
+      border-color: var(--primary);
+      transform: scale(1.1);
+    }
+    
+    .image-download-btn {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      border: 2px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.2s;
+      cursor: pointer;
+      z-index: 10;
+    }
+    
+    .image-card:hover .image-download-btn { opacity: 1; }
+    .image-download-btn:hover { background: var(--success); color: #fff; border-color: var(--success); }
+    
+    /* ========== 广告管理 ========== */
+    .ad-preview {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 12px;
+      padding: 20px;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    
+    .ad-preview h4 { font-size: 18px; margin-bottom: 8px; }
+    .ad-preview .price { font-size: 24px; color: #ffd700; font-weight: bold; margin-bottom: 12px; }
+    .ad-preview .features { margin: 12px 0; }
+    .ad-preview .features li { margin: 6px 0; font-size: 14px; }
+    .ad-preview .gift { background: rgba(255,215,0,0.2); padding: 10px; border-radius: 8px; margin-top: 12px; }
+    
+    .ad-form-section { margin-bottom: 20px; }
+    .ad-form-section h4 { font-size: 14px; color: var(--text-light); margin-bottom: 10px; }
+    
+    .feature-list { display: flex; flex-direction: column; gap: 8px; }
+    .feature-item { display: flex; gap: 8px; align-items: center; }
+    .feature-item input { flex: 1; }
+    .feature-item button { padding: 6px 10px; }
+    
+    /* ========== 拖拽排序增强 ========== */
+    .content-item.drag-over {
+      border-color: var(--primary);
+      border-style: dashed;
+      background: rgba(74, 108, 247, 0.08);
+      transform: scale(1.01);
+    }
+    .content-item.dragging {
+      opacity: 0.4;
+      border-style: dashed;
+    }
+    .drag-placeholder {
+      height: 4px;
+      background: var(--primary);
+      border-radius: 4px;
+      margin: 4px 0;
+      animation: pulse 0.8s ease infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
+    .drag-handle {
+      color: var(--text-light);
+      cursor: grab;
+      padding: 4px 6px;
+      font-size: 20px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      touch-action: none;
+    }
+    .drag-handle:active { cursor: grabbing; color: var(--primary); }
+    .drag-hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-light);
+      padding: 6px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+
+    /* ========== 富文本工具栏 ========== */
+    .richtext-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .richtext-toolbar button {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .richtext-toolbar button:hover { background: var(--bg); border-color: var(--primary); color: var(--primary); }
+    .richtext-toolbar button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .richtext-toolbar .separator { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+    .richtext-editor {
+      width: 100%;
+      min-height: 80px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.6;
+      outline: none;
+      cursor: text;
+    }
+    .richtext-editor:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(74,108,247,0.1); }
+
+    /* ========== 导出功能 ========== */
+    .export-modal-content { padding: 20px; }
+    .export-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .export-option:hover { border-color: var(--primary); background: rgba(74,108,247,0.05); }
+    .export-option.selected { border-color: var(--primary); background: rgba(74,108,247,0.08); }
+    .export-option-icon { font-size: 28px; }
+    .export-option-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .export-option-info p { font-size: 12px; color: var(--text-light); }
+    .export-progress {
+      background: var(--bg);
+      border-radius: 8px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .export-progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 8px;
+      transition: width 0.3s ease;
+    }
+
+    /* ========== 广告图片增强 ========== */
+    .ad-image-upload {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .ad-image-upload:hover { border-color: var(--primary); background: rgba(74,108,247,0.03); }
+    .ad-image-upload.has-image { border-style: solid; border-color: var(--primary); }
+    .ad-image-preview {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 6px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+    .ad-image-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    /* 广告实时预览增强 */
+    .ad-live-preview {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 12px;
+      padding: 20px;
+      color: #fff;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ad-live-preview .ad-image-section {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .ad-live-preview .ad-image-section img {
+      max-height: 140px;
+      max-width: 100%;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .ad-live-preview h4 { font-size: 18px; margin-bottom: 8px; }
+    .ad-live-preview .price { font-size: 24px; color: #ffd700; font-weight: bold; margin-bottom: 12px; }
+    .ad-live-preview .features { margin: 12px 0; }
+    .ad-live-preview .features li { margin: 6px 0; font-size: 14px; }
+    .ad-live-preview .gift { background: rgba(255,215,0,0.2); padding: 10px; border-radius: 8px; margin-top: 12px; }
+    .ad-live-preview .buy-btn {
+      display: inline-block;
+      background: #ffd700;
+      color: #1a1a2e;
+      padding: 10px 24px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      text-decoration: none;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    /* ========== 编辑器 ========== */
+    .editor-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: calc(100vh - 140px);
+      min-height: 0;
+    }
+    
+    .edit-panel, .preview-panel {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    
+    .edit-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-group { display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid var(--border); }
+    .toolbar-group:last-child { border-right: none; }
+
+    .edit-stats {
+      display: flex;
+      gap: 16px;
+      padding: 8px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .edit-stats strong { color: var(--primary); }
+    
+    .content-list {
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    
+    .content-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #fff;
+      cursor: move;
+      transition: all 0.2s;
+    }
+    
+    .content-item:hover { 
+      border-color: var(--primary); 
+      box-shadow: 0 2px 8px rgba(74, 108, 247, 0.15); 
+    }
+    
+    .content-item.selected { 
+      border-color: var(--primary); 
+      background: rgba(74, 108, 247, 0.05); 
+    }
+    
+    .drag-handle { 
+      color: var(--text-light); 
+      cursor: grab; 
+      padding: 4px; 
+      font-size: 18px; 
+    }
+    .drag-handle:active { cursor: grabbing; }
+    
+    .item-content { 
+      flex: 1; 
+      font-size: 14px; 
+      line-height: 1.6; 
+    }
+    .item-content.editing { 
+      padding: 8px; 
+      background: var(--bg); 
+      border-radius: 4px; 
+    }
+    .item-content input, 
+    .item-content textarea { 
+      width: 100%; 
+      border: 1px solid var(--border); 
+      border-radius: 4px; 
+      padding: 8px; 
+      font-size: 14px; 
+    }
+    .item-content input:focus, 
+    .item-content textarea:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+    }
+    
+    .item-type { 
+      display: flex; 
+      flex-direction: column;
+      align-items: center;
+      gap: 4px; 
+      font-size: 12px; 
+      color: var(--text-light);
+      min-width: 50px;
+    }
+    
+    .type-badge { 
+      padding: 4px 8px; 
+      border-radius: 4px; 
+      font-size: 11px; 
+      font-weight: 500; 
+    }
+    .type-badge.section { background: #fee2e2; color: #dc2626; }
+    .type-badge.news { background: #dbeafe; color: #2563eb; }
+    .type-badge.image { background: #d1fae5; color: #059669; }
+    .type-badge.ad { background: #fef3c7; color: #d97706; }
+    
+    .item-actions { 
+      display: flex; 
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    
+    .content-item:hover .item-actions {
+      opacity: 1;
+    }
+    
+    .btn-icon {
+      padding: 4px 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+      color: var(--text-light);
+    }
+    
+    .btn-icon:hover {
+      background: var(--bg);
+      color: var(--primary);
+    }
+    
+    .add-buttons {
+      display: flex;
+      gap: 8px;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    
+    .add-buttons .btn {
+      flex: 1;
+    }
+    
+    .preview-panel {
+      position: sticky;
+      top: 84px;
+      height: calc(100vh - 108px);
+    }
+    
+    .preview-header { padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    
+    .preview-content { flex: 1; overflow-y: auto; background: #f5f5f5; display: flex; flex-direction: column; min-height: 0; }
+    
+    .preview-article { max-width: 677px; margin: 0 auto; background: #fff; flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%; }
+    
+    .preview-frame { flex: 1; border: none; width: 100%; height: 100%; background: #fff; }
+    
+    /* ========== 模态框 ========== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal-content { background: #fff; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 18px; }
+    .modal-header .close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light); }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+    
+    /* ========== 爬虫任务 ========== */
+    .crawler-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #f0f9ff;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .crawler-status .status-icon { font-size: 32px; }
+    .crawler-status .status-text h4 { font-size: 16px; margin-bottom: 4px; }
+    .crawler-status .status-text span { font-size: 13px; color: var(--text-light); }
+    
+    .crawler-history { margin-top: 20px; }
+    .crawler-history h4 { font-size: 14px; color: var(--text-light); margin-bottom: 12px; }
+    
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .history-item:last-child { border-bottom: none; }
+    .history-time { width: 150px; font-size: 13px; color: var(--text-light); }
+    .history-result { flex: 1; }
+    .history-status { font-size: 12px; padding: 2px 8px; border-radius: 4px; }
+    
+    /* 加载动画 */
+    .loading { text-align: center; padding: 40px; color: var(--text-light); }
+    .loading-spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+    /* 空状态 */
+    .empty-state { 
+      text-align: center; 
+      padding: 40px; 
+      color: var(--text-light); 
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+    .empty-state h4 { font-size: 16px; margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; }
+    
+    /* ========== 分页样式 ========== */
+    .pagination-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      justify-content: center;
+    }
+    
+    .pagination-btn {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text);
+      transition: all 0.2s;
+      min-width: 40px;
+      text-align: center;
+    }
+    
+    .pagination-btn:hover:not(.disabled):not(.active) {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(74, 108, 247, 0.05);
+    }
+    
+    .pagination-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    .pagination-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f5f5f5;
+    }
+    
+    .pagination-ellipsis {
+      padding: 8px 6px;
+      color: var(--text-light);
+    }
+    
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .editor-container { grid-template-columns: 1fr; height: auto; }
+      .preview-panel { height: 400px; position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>公众号运营</h1>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">内容管理</div>
+        <a class="menu-item active" data-page="dashboard">
+          <span class="menu-label">仪表盘</span>
+        </a>
+        <a class="menu-item" data-page="articles">
+          <span class="menu-label">文章列表</span>
+        </a>
+        <a class="menu-item" data-page="editor">
+          <span class="menu-label">内容编辑器</span>
+        </a>
+        <a class="menu-item" data-page="images">
+          <span class="menu-label">图片管理</span>
+        </a>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">模板素材</div>
+        </a>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">广告推广</div>
+        <a class="menu-item" data-page="ads-top">
+          <span class="menu-label">顶部广告</span>
+        </a>
+        <a class="menu-item" data-page="ads-bottom">
+          <span class="menu-label">底部广告</span>
+        </a>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">自动化</div>
+        <a class="menu-item" data-page="crawler">
+          <span class="menu-label">爬虫任务</span>
+        </a>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">系统</div>
+        <a class="menu-item" data-page="settings">
+          <span class="menu-label">设置</span>
+        </a>
+      </div>
+    </aside>
+    
+    <!-- 主内容 -->
+    <div class="main-content">
+      <header class="header">
+        <h2 id="page-title">仪表盘</h2>
+        <div class="header-actions" id="header-actions">
+        </div>
+      </header>
+      
+      <div class="page-content" id="page-content">
+        <!-- 动态内容 -->
+      </div>
+    </div>
+  </div>
+  
+  <!-- 模态框 -->
+  <div id="modal-container"></div>
+  
+  <script>
+    // ============ 状态管理 ============
+    const state = {
+      currentPage: 'dashboard',
+      currentDate: null,
+      filterMonth: 'all',
+      articles: [],
+      contentItems: [],
+      images: [],
+      ads: {},
+      crawlerStatus: 'idle',
+      templateConfig: null,
+      // 分页状态
+      articlesPage: 1,
+      articlesPageSize: 12,
+      // 图片编辑器状态
+      editingImageId: null,
+      editingImageSrc: null,
+      editorOriginalImage: null,
+      editorOriginalWidth: 0,
+      editorOriginalHeight: 0,
+      editorCrop: { x: 0, y: 0, width: 100, height: 100 },
+      editorRotation: 0,
+      editorBrightness: 100,
+      editorContrast: 100
+    };
+    
+    // 按日期排序文章（最新在前）
+    function sortArticlesByDate() {
+      state.articles.sort((a, b) => {
+        const dateA = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        const dateB = b.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        if (dateA && dateB) {
+          const dA = new Date(+dateA[1], +dateA[3] - 1, +dateA[5]);
+          const dB = new Date(+dateB[1], +dateB[3] - 1, +dateB[5]);
+          return dB - dA; // 倒序：最新在前
+        }
+        return 0;
+      });
+    }
+    
+    // ============ 日期格式化 ============
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      // 支持 "2026-04-10 01:24:33" 格式
+      const match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        return `${match[1]}-${match[2]}-${match[3]}`;
+      }
+      // 尝试解析其他格式
+      try {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('zh-CN');
+        }
+      } catch {}
+      return dateStr;
+    }
+    
+    // ============ 初始化 ============
+    document.addEventListener('DOMContentLoaded', () => {
+      bindEvents();
+      navigateTo('dashboard');
+    });
+    
+    function bindEvents() {
+      document.querySelectorAll('[data-page]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          navigateTo(el.dataset.page);
+        });
+      });
+    }
+    
+    // ============ 导航 ============
+    function navigateTo(page) {
+      document.querySelectorAll('[data-page]').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === page);
+      });
+      
+      const titles = {
+        'dashboard': '仪表盘',
+        'articles': '文章列表',
+        'editor': '内容编辑器',
+        'images': '图片管理',
+        'ads-top': '顶部广告',
+        'ads-bottom': '底部广告',
+        'crawler': '爬虫任务',
+        'settings': '设置'
+      };
+      document.getElementById('page-title').textContent = titles[page] || '仪表盘';
+      
+      state.currentPage = page;
+      
+      const content = document.getElementById('page-content');
+      switch (page) {
+        case 'dashboard': renderDashboard(); break;
+        case 'articles': renderArticles(); break;
+        case 'editor': renderEditor(); break;
+        case 'images': renderImages(); break;
+        case 'ads-top': renderAds('top'); break;
+        case 'ads-bottom': renderAds('bottom'); break;
+        case 'crawler': renderCrawler(); break;
+        case 'settings': renderSettings(); break;
+      }
+    }
+    
+    // ============ 仪表盘 ============
+    async function renderDashboard() {
+      const content = document.getElementById('page-content');
+      content.innerHTML = `<div class="loading">加载中...</div>`;
+      
+      try {
+        // 并行获取数据
+        const [articlesRes, crawlerRes, adsRes] = await Promise.all([
+          fetch('/api/articles'),
+          fetch('/api/crawler/status'),
+          fetch('/api/ads')
+        ]);
+        
+        const articlesData = await articlesRes.json();
+        const crawlerData = await crawlerRes.json();
+        const adsData = await adsRes.json();
+        
+        if (articlesData.success) {
+          state.articles = articlesData.data;
+          // 立即按日期排序（最新在前）
+          state.articles.sort((a, b) => {
+            const dateA = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+            const dateB = b.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+            if (dateA && dateB) {
+              const dA = new Date(+dateA[1], +dateA[3] - 1, +dateA[5]);
+              const dB = new Date(+dateB[1], +dateB[3] - 1, +dateB[5]);
+              return dB - dA; // 倒序：最新在前
+            }
+            return 0;
+          });
+        }
+        
+        // 获取今日日期
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        
+        // 检查今日是否已爬取
+        const todayArticle = state.articles.find(a => a.date === todayStr);
+        
+        // 计算本周更新情况
+        const weekStart = new Date(today);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // 本周日开始
+        let weekArticles = 0;
+        for (let i = 0; i < 7; i++) {
+          const checkDate = new Date(weekStart);
+          checkDate.setDate(checkDate.getDate() + i);
+          if (checkDate <= today) {
+            const dateStr = `${checkDate.getFullYear()}年${checkDate.getMonth() + 1}月${checkDate.getDate()}日`;
+            if (state.articles.find(a => a.date === dateStr)) {
+              weekArticles++;
+            }
+          }
+        }
+        
+        // 连续更新天数
+        let consecutiveDays = 0;
+        if (state.articles.length > 0) {
+          const sortedDates = state.articles
+            .map(a => {
+              const m = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+              return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+            })
+            .filter(d => d)
+            .sort((a, b) => b - a);
+          
+          for (let i = 0; i < sortedDates.length; i++) {
+            const expectedDate = new Date(today);
+            expectedDate.setDate(expectedDate.getDate() - i);
+            if (sortedDates[i] && sortedDates[i].toDateString() === expectedDate.toDateString()) {
+              consecutiveDays++;
+            } else {
+              break;
+            }
+          }
+        }
+        
+        // 广告配置状态
+        const ads = adsData.success ? adsData.data.ads : {};
+        const topAdConfigured = ads.top?.product_name && ads.top?.buy_link !== '#商品链接';
+        const bottomAdConfigured = ads.bottom?.product_name && ads.bottom?.buy_link !== '#商品链接';
+        
+        // 爬虫状态
+        const lastRun = crawlerData.success ? crawlerData.status.lastRun : null;
+        const lastRunText = lastRun ? new Date(lastRun).toLocaleString('zh-CN', {month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '从未运行';
+        
+        // 最新文章
+        const latest = state.articles[0];
+        
+        content.innerHTML = `
+          <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>${state.articles.length}</h4>
+                <span>文章总数</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>${weekArticles}/7</h4>
+                <span>本周更新</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>${consecutiveDays}天</h4>
+                <span>连续更新</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <h4>${lastRunText}</h4>
+                <span>上次爬取</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <!-- 今日状态 -->
+            <div class="card">
+              <div class="card-body">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">今日状态</div>
+                    <div style="font-size: 18px; font-weight: 600;">${todayStr} ${weekdays[today.getDay()]}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <span class="tag ${todayArticle ? 'tag-success' : 'tag-warning'}" style="font-size: 14px; padding: 6px 16px;">${todayArticle ? '已更新' : '未更新'}</span>
+                  </div>
+                </div>
+                <div style="margin-top: 16px;">
+                  ${todayArticle ? 
+                    `<button class="btn btn-primary" onclick="viewArticle('${todayStr}')">预览今日文章</button>` :
+                    `<button class="btn btn-primary" onclick="runCrawler()">立即爬取</button>`
+                  }
+                </div>
+              </div>
+            </div>
+            
+            <!-- 广告配置 -->
+            <div class="card">
+              <div class="card-body">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <span style="font-size: 14px; font-weight: 600;">广告配置</span>
+                  <button class="btn btn-sm" onclick="navigateTo('ads-top')">设置</button>
+                </div>
+                <div style="display: flex; gap: 20px;">
+                  <div style="flex: 1;">
+                    <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">顶部广告</div>
+                    <span class="tag ${topAdConfigured ? 'tag-success' : 'tag-warning'}">${topAdConfigured ? '已配置' : '待配置'}</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">底部广告</div>
+                    <span class="tag ${bottomAdConfigured ? 'tag-success' : 'tag-warning'}">${bottomAdConfigured ? '已配置' : '待配置'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <h3>快捷操作</h3>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                ${todayArticle ? `<button class="btn btn-primary" onclick="editTodayArticle()">编辑今日新闻</button>` : ''}
+                <button class="btn" onclick="runCrawler()">爬取新文章</button>
+                <button class="btn" onclick="navigateTo('editor')">编辑最新内容</button>
+                <button class="btn" onclick="navigateTo('ads-top')">设置广告</button>
+                <button class="btn" onclick="navigateTo('images')">管理图片</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <h3>最近文章</h3>
+              <button class="btn btn-sm" onclick="navigateTo('articles')">查看全部</button>
+            </div>
+            <div class="card-body">
+              ${state.articles.length > 0 ? state.articles.slice(0, 5).map(a => `
+                <div style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                  <div style="flex: 1;">
+                    <strong>${a.date}</strong>
+                  </div>
+                  <button class="btn btn-sm" onclick="viewArticle('${a.date}')">查看</button>
+                  <button class="btn btn-sm" onclick="editArticle('${a.date}')">编辑</button>
+                  ${a.source_url ? `<a class="btn btn-sm btn-success" href="${a.source_url}" target="_blank" rel="noopener noreferrer" style="margin-left: 8px;">查看原文</a>` : ''}
+                </div>
+              `).join('') : '<div class="empty-state"><p>暂无文章</p></div>'}
+            </div>
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<div class="empty-state"><h4>加载失败</h4><p>${e.message}</p></div>`;
+      }
+    }
+    
+    // ============ 文章列表 ============
+    async function renderArticles() {
+      const content = document.getElementById('page-content');
+      content.innerHTML = `<div class="loading">加载中...</div>`;
+      
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
+        
+        if (data.success) {
+          state.articles = data.data;
+          sortArticlesByDate(); // 立即排序
+          
+          if (state.articles.length === 0) {
+            content.innerHTML = `
+              <div class="empty-state">
+                <h4>暂无文章</h4>
+                <p>点击"爬取新文章"开始</p>
+                <button class="btn btn-primary" onclick="runCrawler()">爬取新文章</button>
+              </div>
+            `;
+            return;
+          }
+          
+          // 按月份分组（从最新开始）
+          const monthGroups = {};
+          const sortedArticles = [...state.articles].sort((a, b) => {
+            const dateA = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+            const dateB = b.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+            if (dateA && dateB) {
+              const dA = new Date(+dateA[1], +dateA[3] - 1, +dateA[5]);
+              const dB = new Date(+dateB[1], +dateB[3] - 1, +dateB[5]);
+              return dB - dA; // 倒序：最新在前
+            }
+            return 0;
+          });
+          
+          sortedArticles.forEach(a => {
+            const month = a.date.match(/(\d+年\d+月)/)?.[1] || a.date;
+            if (!monthGroups[month]) monthGroups[month] = [];
+            monthGroups[month].push(a);
+          });
+          
+          // 当前选中月份（默认显示全部）
+          const currentMonth = state.filterMonth || 'all';
+          
+          // 筛选文章
+          let filteredArticles = sortedArticles;
+          if (currentMonth !== 'all') {
+            filteredArticles = monthGroups[currentMonth] || [];
+          }
+          
+          // 分页计算
+          const pageSize = state.articlesPageSize;
+          const totalArticles = filteredArticles.length;
+          const totalPages = Math.ceil(totalArticles / pageSize);
+          const currentPage = state.articlesPage;
+          
+          // 重置页码（如果超出范围）
+          if (currentPage > totalPages || currentPage < 1) {
+            state.articlesPage = 1;
+          }
+          const actualPage = Math.min(Math.max(state.articlesPage, 1), totalPages || 1);
+          
+          // 当前页的文章
+          const startIndex = (actualPage - 1) * pageSize;
+          const endIndex = startIndex + pageSize;
+          const pageArticles = filteredArticles.slice(startIndex, endIndex);
+          
+          // 生成页码按钮
+          function renderPagination() {
+            if (totalPages <= 1) return '';
+            
+            let pagesHtml = '';
+            const maxVisible = 5; // 最多显示5个页码
+            
+            // 上一页
+            pagesHtml += `<button class="pagination-btn ${actualPage === 1 ? 'disabled' : ''}" 
+              onclick="goToArticlesPage(${actualPage - 1})" ${actualPage === 1 ? 'disabled' : ''}>上一页</button>`;
+            
+            // 页码
+            let startPage = Math.max(1, actualPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+              startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+            
+            if (startPage > 1) {
+              pagesHtml += `<button class="pagination-btn" onclick="goToArticlesPage(1)">1</button>`;
+              if (startPage > 2) {
+                pagesHtml += `<span class="pagination-ellipsis">...</span>`;
+              }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+              pagesHtml += `<button class="pagination-btn ${i === actualPage ? 'active' : ''}" 
+                onclick="goToArticlesPage(${i})">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+              if (endPage < totalPages - 1) {
+                pagesHtml += `<span class="pagination-ellipsis">...</span>`;
+              }
+              pagesHtml += `<button class="pagination-btn" onclick="goToArticlesPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // 下一页
+            pagesHtml += `<button class="pagination-btn ${actualPage === totalPages ? 'disabled' : ''}" 
+              onclick="goToArticlesPage(${actualPage + 1})" ${actualPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+            
+            return pagesHtml;
+          }
+          
+          content.innerHTML = `
+            <div class="articles-toolbar" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <span>按月份筛选：</span>
+                <select id="month-filter" onchange="filterArticlesByMonth(this.value)" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; min-width: 150px;">
+                  <option value="all">全部文章 (${sortedArticles.length}篇)</option>
+                  ${Object.entries(monthGroups)
+                    .sort((a, b) => {
+                      const mA = a[0].match(/(\d+)(年)(\d+)月/);
+                      const mB = b[0].match(/(\d+)(年)(\d+)月/);
+                      if (mA && mB) {
+                        return (+mB[1] * 100 + +mB[2]) - (+mA[1] * 100 + +mA[2]);
+                      }
+                      return 0;
+                    })
+                    .map(([month, articles]) => 
+                      `<option value="${month}" ${currentMonth === month ? 'selected' : ''}>${month} (${articles.length}篇)</option>`
+                    ).join('')}
+                </select>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--text-light); font-size: 13px;">每页显示：</span>
+                <select id="page-size" onchange="changeArticlesPageSize(this.value)" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;">
+                  <option value="12" ${pageSize === 12 ? 'selected' : ''}>12条</option>
+                  <option value="20" ${pageSize === 20 ? 'selected' : ''}>20条</option>
+                  <option value="50" ${pageSize === 50 ? 'selected' : ''}>50条</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="articles-grid">
+              ${pageArticles.map(a => `
+                <div class="article-card">
+                  <div class="article-card-header">
+                    <h3>${a.date}</h3>
+                  </div>
+                  <div class="article-card-body">
+                    <div class="article-card-actions">
+                      <button class="btn btn-sm btn-primary" onclick="editArticle('${a.date}')">编辑</button>
+                      <button class="btn btn-sm" onclick="viewArticle('${a.date}')">预览</button>
+                      <button class="btn btn-sm" onclick="downloadArticle('${a.date}')">下载</button>
+                      ${a.source_url ? `<a class="btn btn-sm btn-success" href="${a.source_url}" target="_blank" rel="noopener noreferrer">查看原文</a>` : ''}
+                      <button class="btn btn-sm btn-danger" onclick="deleteArticle('${a.date}')">删除</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            ${pageArticles.length === 0 ? `
+              <div class="empty-state" style="margin-top: 40px;">
+                <h4>该月份暂无文章</h4>
+              </div>
+            ` : ''}
+            
+            ${totalPages > 1 ? `
+              <div class="pagination-container" style="margin-top: 24px;">
+                <div class="pagination-info" style="margin-bottom: 8px; color: var(--text-light); font-size: 13px;">
+                  显示 ${startIndex + 1}-${Math.min(endIndex, totalArticles)} 条，共 ${totalArticles} 条
+                </div>
+                <div class="pagination">
+                  ${renderPagination()}
+                </div>
+              </div>
+            ` : ''}
+          `;
+        }
+      } catch (e) {
+        content.innerHTML = `<div class="empty-state"><h4>加载失败</h4><p>${e.message}</p></div>`;
+      }
+    }
+    
+    function goToArticlesPage(page) {
+      state.articlesPage = page;
+      renderArticles();
+    }
+    
+    function changeArticlesPageSize(size) {
+      state.articlesPageSize = parseInt(size);
+      state.articlesPage = 1; // 重置到第一页
+      renderArticles();
+    }
+    
+    function filterArticlesByMonth(month) {
+      state.filterMonth = month;
+      state.articlesPage = 1; // 筛选时重置到第一页
+      renderArticles();
+    }
+    
+    function viewArticle(date) {
+      window.open(`/output/${date}/完整版.html`, '_blank');
+    }
+    
+    function editArticle(date) {
+      state.currentDate = date;
+      navigateTo('editor');
+    }
+    
+    function editTodayArticle() {
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+      state.currentDate = todayStr;
+      navigateTo('editor');
+    }
+    
+    function downloadArticle(date) {
+      window.open(`/output/${date}/完整版.html`, '_blank');
+    }
+    
+    async function deleteArticle(date) {
+      if (!confirm(`确定删除 ${date} 的所有文章数据？此操作不可恢复！`)) return;
+      
+      try {
+        const res = await fetch(`/api/articles/${encodeURIComponent(date)}`, { method: 'DELETE' });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ 已删除');
+          navigateTo('articles');
+        } else {
+          alert('❌ 删除失败：' + data.error);
+        }
+      } catch (e) {
+        alert('❌ 删除失败：' + e.message);
+      }
+    }
+    
+    // ============ 图片管理 ============
+    async function renderImages() {
+      const content = document.getElementById('page-content');
+      
+      // 先加载文章列表
+      if (state.articles.length === 0) {
+        try {
+          const res = await fetch('/api/articles');
+          const data = await res.json();
+          if (data.success) {
+            state.articles = data.data;
+            sortArticlesByDate(); // 立即排序
+          }
+        } catch (e) {}
+      }
+      
+      // 按日期分组（从最新开始）
+      const dateGroups = {};
+      // 按日期倒序排序
+      const sortedArticles = [...state.articles].sort((a, b) => {
+        const dateA = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        const dateB = b.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        if (dateA && dateB) {
+          const dA = new Date(+dateA[1], +dateA[3] - 1, +dateA[5]);
+          const dB = new Date(+dateB[1], +dateB[3] - 1, +dateB[5]);
+          return dB - dA; // 倒序：最新在前
+        }
+        return 0;
+      });
+      
+      sortedArticles.forEach(a => {
+        const month = a.date.match(/(\d+年\d+月)/)?.[1] || a.date;
+        if (!dateGroups[month]) dateGroups[month] = [];
+        dateGroups[month].push(a.date);
+      });
+      
+      content.innerHTML = `
+        <div class="images-layout">
+          <!-- 左侧分类列表 -->
+          <div class="images-sidebar">
+            <div class="images-category" style="background: #fef3c7; border-color: #f59e0b;">
+              <div class="category-header">
+                <span>模板素材</span>
+                <span class="category-badge" style="background: #f59e0b; color: #fff;">封面/分隔线</span>
+              </div>
+              <div class="category-desc">文章头部封面、章节分隔线、底部 Logo 等模板图片</div>
+              <div class="category-actions">
+                <button class="btn btn-sm btn-primary" onclick="selectCategory('template-assets')">管理模板</button>
+              </div>
+            </div>
+            <div class="images-category">
+              <div class="category-header">
+                <span>通用图片库</span>
+                <span class="category-badge">素材</span>
+              </div>
+              <div class="category-desc">可重复使用的图片素材，上传后可设为模板</div>
+              <div class="category-actions">
+                <button class="btn btn-sm btn-primary" onclick="selectCategory('common')">查看素材</button>
+              </div>
+            </div>
+            <div class="images-divider">
+              <span>按日期分类</span>
+            </div>
+            
+            ${Object.entries(dateGroups)
+                .sort((a, b) => {
+                  // 月份也按倒序排列
+                  const monthA = a[0].match(/(\d+)(年)(\d+)月/);
+                  const monthB = b[0].match(/(\d+)(年)(\d+)月/);
+                  if (monthA && monthB) {
+                    return (+monthB[1] * 100 + +monthB[2]) - (+monthA[1] * 100 + +monthA[2]);
+                  }
+                  return 0;
+                })
+                .map(([month, dates]) => `
+              <div class="images-category-group">
+                <div class="group-header">${month}</div>
+                <div class="group-items">
+                  ${dates.map(d => `
+                    <div class="category-item ${state.currentDate === d ? 'active' : ''}" onclick="selectCategory('${d}')">
+                      <span class="item-label">${d}</span>
+                      <span class="item-count" id="count-${d}">-</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <!-- 右侧图片区 -->
+          <div class="images-main">
+            <div class="images-toolbar">
+              <h3 id="category-title">选择分类查看图片</h3>
+              <div class="toolbar-actions">
+                <button class="btn btn-sm btn-primary" id="upload-btn" style="display: none;" onclick="uploadToDate()">上传图片</button>
+                <button class="btn btn-sm" id="insert-btn" style="display: none;" onclick="insertSelectedToEditor()">插入编辑器</button>
+                <button class="btn btn-sm" onclick="selectAllImages()">全选</button>
+                <button class="btn btn-sm" onclick="clearImageSelection()">取消</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteSelectedImages()">删除</button>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-body" style="min-height: 400px;">
+                <div id="images-container" style="display: flex; justify-content: center; align-items: center; min-height: 360px;">
+                  <div class="empty-state">
+                    <h4 style="font-size: 18px; margin-bottom: 12px;">请选择左侧分类</h4>
+                    <p style="font-size: 14px; color: #999;">点击日期查看新闻图片，或点击"通用图片库"查看模板素材</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 预加载每个日期的图片数量
+      state.articles.forEach(async a => {
+        try {
+          const configRes = await fetch(`/output/${a.date}/images.json`);
+          if (configRes.ok) {
+            const config = await configRes.json();
+            const countEl = document.getElementById(`count-${a.date}`);
+            if (countEl) countEl.textContent = config.length;
+          }
+        } catch (e) {}
+      });
+    }
+    
+    // 选择分类
+    function selectCategory(category) {
+      state.currentCategory = category;
+      
+      // 更新左侧选中状态
+      document.querySelectorAll('.category-item').forEach(el => {
+        el.classList.toggle('active', el.textContent.includes(category));
+      });
+      
+      // 更新标题和按钮
+      const titleEl = document.getElementById('category-title');
+      const uploadBtn = document.getElementById('upload-btn');
+      const insertBtn = document.getElementById('insert-btn');
+      
+      if (category === 'template-assets') {
+        titleEl.textContent = '模板素材管理';
+        uploadBtn.style.display = 'none';
+        insertBtn.style.display = 'none';
+        loadTemplateAssets();
+      } else if (category === 'common') {
+        titleEl.textContent = '通用图片库';
+        uploadBtn.style.display = 'none';
+        insertBtn.style.display = 'inline-flex';
+        loadCommonImages();
+      } else {
+        titleEl.textContent = category;
+        uploadBtn.style.display = 'inline-flex';
+        insertBtn.style.display = 'inline-flex';
+        loadImages(category);
+      }
+    }
+    
+    // 加载模板素材管理页面
+    async function loadTemplateAssets() {
+      const container = document.getElementById('images-container');
+      container.innerHTML = `<div class="loading">加载中...</div>`;
+      
+      // 加载模板配置
+      let config = { templateAssets: {} };
+      try {
+        const configRes = await fetch('/api/template');
+        if (configRes.ok) {
+          const configData = await configRes.json();
+          config = configData.data || configData;
+        }
+      } catch (e) {}
+      
+      // 加载通用图片列表（用于选择）
+      let commonImages = [];
+      try {
+        const listRes = await fetch('/api/upload/common/list');
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          if (listData.success) {
+            commonImages = listData.data;
+          }
+        }
+      } catch (e) {}
+      
+      // 模板素材类型定义
+      const assetTypes = [
+        { key: 'header', name: '头部封面', icon: '📰', multiple: false },
+        { key: 'subtitle', name: '章节副标题', icon: '📋', chapters: ['A','B','C','D','E','F'] },
+        { key: 'footer', name: '底部 Logo', icon: '🏷️', multiple: false },
+        { key: 'watermark', name: '水印', icon: '💧', multiple: false }
+      ];
+      
+      // 渲染单图模板卡片
+      function renderSingleAsset(asset, assetConfig, commonImages) {
+        const currentImg = assetConfig.filename ? commonImages.find(i => i.filename === assetConfig.filename) : null;
+        return `
+          <div style="border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: #fff;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 18px;">${asset.icon}</span>
+                <span style="font-weight: 500; font-size: 14px;">${asset.name}</span>
+              </div>
+              <label class="toggle-switch" onclick="event.stopPropagation();" style="transform: scale(0.8);">
+                <input type="checkbox" ${assetConfig.enabled ? 'checked' : ''} onchange="toggleTemplateAsset('${asset.key}', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div style="background: #f5f5f5; border-radius: 6px; height: 80px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px; cursor: pointer;" onclick="uploadTemplateAsset('${asset.key}')">
+              ${currentImg ? `
+                <img src="${currentImg.path}" alt="${asset.name}" style="width: 100%; height: 100%; object-fit: contain;">
+              ` : `
+                <div style="text-align: center; color: #999;">
+                  <div style="font-size: 20px;">+</div>
+                  <div style="font-size: 11px;">点击上传</div>
+                </div>
+              `}
+            </div>
+            
+            <div style="display: flex; gap: 6px;">
+              <select style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px;" onchange="setAsTemplate(this.value, '${asset.key}')">
+                <option value="">选择...</option>
+                ${commonImages.map(img => `<option value="${img.filename}" ${assetConfig.filename === img.filename ? 'selected' : ''}>${img.filename}</option>`).join('')}
+              </select>
+              <button class="btn btn-sm" style="padding: 6px 10px; font-size: 12px;" onclick="uploadTemplateAsset('${asset.key}')">上传</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 渲染多图模板卡片（分隔线）
+      function renderSubtitleAsset(asset, assetConfig, commonImages) {
+        // 章节名称映射
+        const chapterNames = { 'A': '国内', 'B': '国际', 'C': '财经', 'D': '体育', 'E': '社会', 'F': '其他' };
+        const subtitles = assetConfig.subtitles || {};
+        
+        return `
+          <div style="border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: #fff; grid-column: span 2;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 18px;">${asset.icon}</span>
+                <span style="font-weight: 500; font-size: 14px;">${asset.name}</span>
+                <span style="font-size: 12px; color: var(--text-light);">（A-F 六个章节独立配置）</span>
+              </div>
+              <label class="toggle-switch" onclick="event.stopPropagation();" style="transform: scale(0.8);">
+                <input type="checkbox" ${assetConfig.enabled ? 'checked' : ''} onchange="toggleTemplateAsset('subtitle', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+              ${asset.chapters.map(chapter => {
+                const chapterConfig = subtitles[chapter] || { enabled: false, filename: null };
+                const currentImg = chapterConfig.filename ? commonImages.find(i => i.filename === chapterConfig.filename) : null;
+                return `
+                  <div style="border: 1px solid var(--border-light); border-radius: 6px; padding: 8px; background: #fafafa;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="background: var(--primary); color: #fff; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">${chapter}</span>
+                        <span style="font-size: 12px;">${chapterNames[chapter]}</span>
+                      </div>
+                      <label class="toggle-switch" onclick="event.stopPropagation();" style="transform: scale(0.7);">
+                        <input type="checkbox" ${chapterConfig.enabled ? 'checked' : ''} onchange="toggleSubtitleAsset('${chapter}', this.checked)">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; border-radius: 4px; height: 50px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;" onclick="uploadSubtitleAsset('${chapter}')">
+                      ${currentImg ? `
+                        <img src="${currentImg.path}" style="width: 100%; height: 100%; object-fit: contain;">
+                      ` : `
+                        <div style="text-align: center; color: #999;">
+                          <div style="font-size: 14px;">+</div>
+                        </div>
+                      `}
+                    </div>
+                    
+                    <select style="width: 100%; margin-top: 4px; padding: 4px; border-radius: 4px; border: 1px solid var(--border); font-size: 11px;" onchange="setSubtitleImage('${chapter}', this.value)">
+                      <option value="">选择...</option>
+                      ${commonImages.map(img => `<option value="${img.filename}" ${chapterConfig.filename === img.filename ? 'selected' : ''}>${img.filename}</option>`).join('')}
+                    </select>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = `
+        <div style="padding: 12px;">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            ${assetTypes.map(asset => {
+              const assetConfig = config.templateAssets?.[asset.key] || { enabled: false, filename: null, subtitles: {} };
+              
+              if (asset.chapters) {
+                return renderSubtitleAsset(asset, assetConfig, commonImages);
+              } else {
+                return renderSingleAsset(asset, assetConfig, commonImages);
+              }
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    // 章节名称映射
+    const chapterNames = { 'A': '国内', 'B': '国际', 'C': '财经', 'D': '体育', 'E': '社会', 'F': '其他' };
+    
+    // 切换章节副标题启用状态
+    async function toggleSubtitleAsset(chapter, enabled) {
+      const res = await fetch('/api/template');
+      const data = await res.json();
+      const config = data.data || data;
+      
+      if (!config.templateAssets) config.templateAssets = {};
+      if (!config.templateAssets.subtitle) config.templateAssets.subtitle = { enabled: true, subtitles: {} };
+      if (!config.templateAssets.subtitle.subtitles) config.templateAssets.subtitle.subtitles = {};
+      if (!config.templateAssets.subtitle.subtitles[chapter]) config.templateAssets.subtitle.subtitles[chapter] = { enabled: false, filename: null };
+      
+      config.templateAssets.subtitle.subtitles[chapter].enabled = enabled;
+      
+      await fetch('/api/template', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      });
+    }
+    
+    // 设置章节副标题图片
+    async function setSubtitleImage(chapter, filename) {
+      if (!filename) return;
+      
+      const res = await fetch('/api/template');
+      const data = await res.json();
+      const config = data.data || data;
+      
+      if (!config.templateAssets) config.templateAssets = {};
+      if (!config.templateAssets.subtitle) config.templateAssets.subtitle = { enabled: true, subtitles: {} };
+      if (!config.templateAssets.subtitle.subtitles) config.templateAssets.subtitle.subtitles = {};
+      if (!config.templateAssets.subtitle.subtitles[chapter]) config.templateAssets.subtitle.subtitles[chapter] = { enabled: false, filename: null };
+      
+      config.templateAssets.subtitle.subtitles[chapter].filename = filename;
+      config.templateAssets.subtitle.subtitles[chapter].enabled = true;
+      config.templateAssets.subtitle.enabled = true;
+      
+      await fetch('/api/template', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      });
+      
+      loadTemplateAssets();
+    }
+    
+    // 上传章节副标题图片
+    function uploadSubtitleAsset(chapter) {
+      const chapterNames = { 'A': '国内', 'B': '国际', 'C': '财经', 'D': '体育', 'E': '社会', 'F': '其他' };
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const imageData = event.target.result;
+          
+          try {
+            // 上传图片
+            const uploadRes = await fetch('/api/upload/common', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                filename: `${chapter}_${chapterNames[chapter]}.png`,
+                imageData: imageData
+              })
+            });
+            
+            const uploadData = await uploadRes.json();
+            if (uploadData.success) {
+              // 设置为该章节的副标题
+              await setSubtitleImage(chapter, uploadData.filename);
+            } else {
+              alert('上传失败：' + uploadData.error);
+            }
+          } catch (err) {
+            alert('上传失败：' + err.message);
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+    
+    // 上传模板素材图片
+    function uploadTemplateAsset(usage) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const imageData = event.target.result;
+          
+          try {
+            const res = await fetch('/api/upload/common', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                filename: file.name,
+                imageData: imageData,
+                usage: usage
+              })
+            });
+            
+            const data = await res.json();
+            if (data.success) {
+              // 自动启用该模板
+              await fetch('/api/template', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  templateAssets: {
+                    [usage]: { enabled: true, filename: data.filename }
+                  }
+                })
+              });
+              loadTemplateAssets();
+            } else {
+              alert('上传失败：' + data.error);
+            }
+          } catch (err) {
+            alert('上传失败：' + err.message);
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+    
+    // 将选中的图片插入到编辑器
+    async function insertSelectedToEditor() {
+      const selected = state.images.filter(i => i.selected);
+      if (selected.length === 0) {
+        alert('请先选择要插入的图片');
+        return;
+      }
+      
+      // 检查是否有编辑器日期
+      if (!state.currentDate || state.currentDate === 'common') {
+        // 如果没有选择日期，跳转到编辑器并选择日期
+        alert('请先在内容编辑器中选择一个日期，然后再插入图片');
+        navigateTo('editor');
+        return;
+      }
+      
+      // 添加到内容列表
+      for (const img of selected) {
+        state.contentItems.push({
+          id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: 'image',
+          src: img.src,
+          filename: img.filename,
+          fromLibrary: true
+        });
+      }
+      
+      // 清除选择
+      clearImageSelection();
+      
+      // 提示并跳转
+      alert(`已插入 ${selected.length} 张图片到编辑器`);
+      navigateTo('editor');
+      
+      // 刷新编辑器内容列表
+      setTimeout(() => {
+        renderContentList();
+        refreshPreview();
+      }, 100);
+    }
+    
+    // 加载通用图片库
+    async function loadCommonImages() {
+      const container = document.getElementById('images-container');
+      container.innerHTML = `<div class="loading">加载中...</div>`;
+      
+      state.images = [];
+      state.currentDate = 'common';
+      
+      // 加载配置
+      let config = { templateAssets: {} };
+      try {
+        const configRes = await fetch('/api/template');
+        if (configRes.ok) {
+          const configData = await configRes.json();
+          if (configData.success) config = configData.data;
+        }
+      } catch (e) {}
+      
+      // 定义模板素材类型
+      const templateTypes = {
+        'header': { usage: 'header', desc: '文章头部背景', type: '模板图' },
+        'divider': { usage: 'divider', desc: '章节分割线', type: '装饰图' },
+        'footer': { usage: 'footer', desc: '底部Logo/二维码', type: '模板图' },
+        'watermark': { usage: 'watermark', desc: '图片水印（需透明PNG）', type: '模板图' }
+      };
+      
+      // 从服务器获取实际文件列表
+      let serverImages = [];
+      try {
+        const listRes = await fetch('/api/upload/common/list');
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          if (listData.success) {
+            serverImages = listData.data;
+          }
+        }
+      } catch (e) {}
+      
+      // 显示所有图片，并根据用途分组
+      const validImages = [];
+      
+      // 首先添加已配置的模板素材（显示启用状态）
+      for (const [key, info] of Object.entries(templateTypes)) {
+        const configuredFilename = config.templateAssets[key]?.filename;
+        if (configuredFilename) {
+          const serverImg = serverImages.find(img => img.filename === configuredFilename);
+          if (serverImg) {
+            validImages.push({
+              id: `template-${key}`,
+              filename: serverImg.filename,
+              src: serverImg.path,
+              type: info.type,
+              desc: `${info.desc}（当前使用）`,
+              usage: key,
+              enabled: config.templateAssets[key]?.enabled || false,
+              isCurrent: true,
+              selected: false
+            });
+          }
+        }
+      }
+      
+      // 然后添加所有其他图片
+      for (const img of serverImages) {
+        // 检查是否已经添加过（作为当前模板）
+        const alreadyAdded = validImages.some(v => v.filename === img.filename);
+        if (!alreadyAdded) {
+          validImages.push({
+            id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            filename: img.filename,
+            src: img.path,
+            type: '素材图片',
+            desc: img.filename.replace(/\.[^.]+$/, ''),
+            usage: null,
+            enabled: false,
+            isCurrent: false,
+            selected: false
+          });
+        }
+      }
+      
+      state.images = validImages;
+      state.templateConfig = config;
+      
+      if (validImages.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h4>暂无模板素材</h4>
+            <p>上传图片后可设置为模板素材，每次生成文章自动使用</p>
+            <button class="btn btn-primary" onclick="uploadToCommon()">上传图片</button>
+            <div style="margin-top: 20px; font-size: 13px; color: var(--text-light);">
+              <div style="margin-bottom: 8px;">建议文件命名：</div>
+              <div>header.png → 头部背景</div>
+              <div>divider.png → 分割线</div>
+              <div>footer.png → 底部Logo</div>
+              <div>watermark.png → 水印</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = `
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f0f9ff; border-radius: 8px; border: 1px solid #bae6fd;">
+          <div>
+            <div style="font-weight: 600; margin-bottom: 4px;">模板素材说明</div>
+            <div style="font-size: 13px; color: #0369a1;">
+              启用后，每次生成文章时将自动插入对应位置
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary btn-sm" onclick="uploadToCommon()">上传图片</button>
+          </div>
+        </div>
+        <div class="images-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;">${validImages.map(img => `
+          <div class="image-card ${img.selected ? 'selected' : ''}" 
+               data-id="${img.id}" 
+               onclick="openImageEditor('${img.id}')"
+               style="position: relative; border-radius: 8px; overflow: hidden; background: #f0f0f0; cursor: pointer; border: 2px solid ${img.selected ? 'var(--primary)' : 'var(--border)'};">
+            <div style="aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #f8f8f8;">
+              <img src="${img.src}" alt="${img.filename}" loading="lazy" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            </div>
+            <div class="image-checkbox" onclick="event.stopPropagation(); toggleImageSelect('${img.id}')">${img.selected ? '✓' : ''}</div>
+            <div class="image-download-btn" onclick="event.stopPropagation(); downloadImage('${img.src}', '${img.filename}')">↓</div>
+            ${img.isCurrent ? `
+              <div style="position: absolute; top: 8px; left: 8px;">
+                <label class="toggle-switch" onclick="event.stopPropagation();">
+                  <input type="checkbox" ${img.enabled ? 'checked' : ''} onchange="toggleTemplateAsset('${img.usage}', this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div style="position: absolute; top: 40px; left: 8px; background: var(--primary); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">
+                ${img.usage === 'header' ? '头部' : img.usage === 'divider' ? '分割线' : img.usage === 'footer' ? '底部' : '水印'}
+              </div>
+            ` : `
+              <div style="position: absolute; bottom: 50px; left: 8px; right: 8px;">
+                <select style="width: 100%; font-size: 11px; padding: 4px; border-radius: 4px; border: 1px solid var(--border);" onclick="event.stopPropagation();" onchange="setAsTemplate('${img.filename}', this.value)">
+                  <option value="">设为模板...</option>
+                  <option value="header">作为头部背景</option>
+                  <option value="divider">作为分割线</option>
+                  <option value="footer">作为底部Logo</option>
+                  <option value="watermark">作为水印</option>
+                </select>
+              </div>
+            `}
+            <div style="padding: 8px; background: #fff; border-top: 1px solid var(--border);" onclick="event.stopPropagation(); toggleImageSelect('${img.id}')">
+              <div style="font-size: 12px; font-weight: 500; color: var(--text);">${img.filename}</div>
+              <div style="font-size: 11px; color: var(--text-light);">${img.desc}</div>
+            </div>
+          </div>
+        `).join('')}</div>
+      `;
+    }
+    
+    // 将图片设为模板素材
+    async function setAsTemplate(filename, usage) {
+      if (!usage) return;
+      
+      if (!state.templateConfig) {
+        state.templateConfig = { templateAssets: {} };
+      }
+      if (!state.templateConfig.templateAssets[usage]) {
+        state.templateConfig.templateAssets[usage] = { enabled: true, filename: null };
+      }
+      state.templateConfig.templateAssets[usage].filename = filename;
+      state.templateConfig.templateAssets[usage].enabled = true;
+      
+      try {
+        await fetch('/api/template', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state.templateConfig)
+        });
+        alert(`已将 ${filename} 设为${usage === 'header' ? '头部背景' : usage === 'divider' ? '分割线' : usage === 'footer' ? '底部Logo' : '水印'}`);
+        await loadCommonImages();
+      } catch (e) {
+        alert('设置失败：' + e.message);
+      }
+    }
+    
+    // 切换模板素材启用状态
+    async function toggleTemplateAsset(usage, enabled) {
+      if (!state.templateConfig) {
+        state.templateConfig = { templateAssets: {} };
+      }
+      if (!state.templateConfig.templateAssets[usage]) {
+        state.templateConfig.templateAssets[usage] = { enabled: false, filename: null };
+      }
+      state.templateConfig.templateAssets[usage].enabled = enabled;
+      
+      // 找到对应的图片文件名
+      const img = state.images.find(i => i.usage === usage);
+      if (img) {
+        state.templateConfig.templateAssets[usage].filename = img.filename;
+      }
+      
+      // 保存配置
+      try {
+        await fetch('/api/template', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state.templateConfig)
+        });
+      } catch (e) {
+        console.error('保存配置失败:', e);
+      }
+    }
+    
+    // 上传到通用图片库
+    async function uploadToCommon() {
+      // 显示用途选择弹窗
+      showModal('上传模板素材', `
+        <div class="form-group">
+          <label>选择用途</label>
+          <select id="upload-usage" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+            <option value="">普通图片（不设用途）</option>
+            <option value="header">文章头部背景</option>
+            <option value="divider">章节分割线</option>
+            <option value="footer">底部Logo/二维码</option>
+            <option value="watermark">水印图片</option>
+          </select>
+        </div>
+        <div style="font-size: 13px; color: var(--text-light); margin-top: 12px;">
+          <p style="margin-bottom: 8px;"><strong>用途说明：</strong></p>
+          <p style="margin-bottom: 4px;">• 头部背景：在文章开头显示</p>
+          <p style="margin-bottom: 4px;">• 分割线：在国内/国际新闻之间插入</p>
+          <p style="margin-bottom: 4px;">• 底部Logo：文章末尾显示</p>
+          <p style="margin-bottom: 4px;">• 水印：覆盖在所有图片上</p>
+        </div>
+      `, [
+        { text: '取消', class: 'btn' },
+        { text: '选择文件', class: 'btn btn-primary', onclick: 'selectUploadFiles()' }
+      ]);
+    }
+    
+    async function selectUploadFiles() {
+      const usage = document.getElementById('upload-usage').value;
+      closeModal();
+      
+      // 创建文件输入
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.multiple = true;
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      
+      input.onchange = async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) {
+          document.body.removeChild(input);
+          return;
+        }
+        
+        const container = document.getElementById('images-container');
+        let successCount = 0;
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          
+          // 显示上传进度
+          container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+              <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
+              <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">正在上传 ${i + 1}/${files.length}</div>
+              <div style="font-size: 14px; color: var(--text-light);">${file.name}</div>
+              ${usage ? `<div style="font-size: 13px; color: var(--primary); margin-top: 8px;">用途: ${getUsageLabel(usage)}</div>` : ''}
+            </div>
+          `;
+          
+          try {
+            const base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error('无法读取文件'));
+              reader.readAsDataURL(file);
+            });
+            
+            const res = await fetch('/api/upload/common', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                filename: file.name,
+                imageData: base64,
+                usage: usage || undefined
+              })
+            });
+            
+            const data = await res.json();
+            if (data.success) {
+              successCount++;
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
+        
+        // 显示结果
+        container.innerHTML = `
+          <div style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">上传完成</div>
+            <div style="font-size: 14px; color: var(--success);">成功上传 ${successCount} 个文件</div>
+          </div>
+        `;
+        
+        setTimeout(async () => {
+          await loadCommonImages();
+        }, 1000);
+        
+        document.body.removeChild(input);
+      };
+      
+      input.click();
+    }
+    
+    function getUsageLabel(usage) {
+      const labels = {
+        header: '文章头部背景',
+        divider: '章节分割线',
+        footer: '底部Logo/二维码',
+        watermark: '水印图片'
+      };
+      return labels[usage] || '';
+    }
+    
+    // 上传到当前日期目录
+    async function uploadToDate() {
+      if (!state.currentDate || state.currentDate === 'common') {
+        alert('请先选择一个日期');
+        return;
+      }
+      
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.multiple = true;
+      input.onchange = async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        
+        for (const file of files) {
+          try {
+            const base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            
+            await fetch(`/api/upload/date/${encodeURIComponent(state.currentDate)}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                filename: file.name,
+                imageData: base64
+              })
+            });
+          } catch (err) {
+            console.error('上传失败:', err);
+          }
+        }
+        
+        // 刷新
+        await loadImages(state.currentDate);
+      };
+      input.click();
+    }
+    
+    // 加载指定日期的图片
+    async function loadImages(date) {
+      if (!date) return;
+      state.currentDate = date;
+      
+      const container = document.getElementById('images-container');
+      container.innerHTML = `<div class="loading">加载图片...</div>`;
+      
+      // 加载图片配置
+      let imageConfig = [];
+      try {
+        const configRes = await fetch(`/output/${date}/images.json`);
+        if (configRes.ok) {
+          imageConfig = await configRes.json();
+        }
+      } catch (e) {}
+      
+      state.images = [];
+      
+      // 尝试加载图片（1-30张）
+      for (let i = 1; i <= 30; i++) {
+        const img = {
+          id: `img-${i}`,
+          filename: `image_${i}.jpg`,
+          src: `/output/${date}/images/image_${i}.jpg`,
+          selected: false,
+          config: imageConfig.find(c => c.id === `img-${i}`) || null,
+          type: '新闻配图'
+        };
+        state.images.push(img);
+      }
+      
+      // 检查实际存在的图片
+      const validImages = [];
+      for (const img of state.images) {
+        try {
+          const res = await fetch(img.src);
+          if (res.ok) validImages.push(img);
+        } catch (e) {}
+      }
+      
+      state.images = validImages;
+      
+      if (validImages.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h4>暂无图片</h4>
+            <p>该日期没有图片数据</p>
+            <button class="btn btn-primary" onclick="uploadToDate()">上传图片</button>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = `<div class="images-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;">${validImages.map(img => `
+        <div class="image-card ${img.selected ? 'selected' : ''}" 
+             data-id="${img.id}" 
+             onclick="openImageEditor('${img.id}')"
+             style="position: relative; border-radius: 8px; overflow: hidden; background: #f0f0f0; cursor: pointer; border: 2px solid ${img.selected ? 'var(--primary)' : 'var(--border)'};">
+          <div style="aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #f8f8f8;">
+            <img src="${img.src}" alt="${img.filename}" loading="lazy" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+          </div>
+          <div class="image-checkbox" onclick="event.stopPropagation(); toggleImageSelect('${img.id}')">${img.selected ? '✓' : ''}</div>
+          <div class="image-download-btn" onclick="event.stopPropagation(); downloadImage('${img.src}', '${img.filename}')">↓</div>
+          <div style="padding: 8px; background: #fff; border-top: 1px solid var(--border);" onclick="event.stopPropagation(); toggleImageSelect('${img.id}')">
+            <div style="font-size: 12px; font-weight: 500; color: var(--text);">${img.filename}</div>
+            ${img.config ? `<div style="font-size: 11px; color: var(--text-light);">${img.config.sizeKB}KB</div>` : ''}
+          </div>
+        </div>
+      `).join('')}</div>`;
+    }
+    
+    function showImageDetail(id) {
+      const img = state.images.find(i => i.id === id);
+      if (!img) return;
+      
+      showModal('图片详情', `
+        <div style="text-align: center;">
+          <img src="${img.src}" id="detail-image" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+        </div>
+        <div style="margin-top: 16px;">
+          <div class="form-group">
+            <label>文件名</label>
+            <input type="text" value="${img.filename}" readonly>
+          </div>
+          ${img.desc ? `
+            <div class="form-group">
+              <label>用途</label>
+              <input type="text" value="${img.desc}" readonly>
+            </div>
+          ` : ''}
+        </div>
+      `, [
+        { text: '关闭', class: 'btn' },
+        { text: '编辑图片', class: 'btn', onclick: `openImageEditor('${id}')` },
+        { text: '替换图片', class: 'btn btn-primary', onclick: `selectReplacement('${id}')` }
+      ]);
+    }
+    
+    // 选择替换图片
+    function selectReplacement(id) {
+      closeModal();
+      setTimeout(() => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          const img = state.images.find(i => i.id === id);
+          if (!img) return;
+          
+          try {
+            const base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error('读取失败'));
+              reader.readAsDataURL(file);
+            });
+            
+            const res = await fetch('/api/upload/common', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: img.filename, imageData: base64 })
+            });
+            
+            const data = await res.json();
+            if (data.success) {
+              await loadCommonImages();
+              alert('替换成功！');
+            } else {
+              alert('替换失败：' + data.error);
+            }
+          } catch (err) {
+            alert('替换出错：' + err.message);
+          }
+        };
+        input.click();
+      }, 100);
+    }
+    
+    // 打开图片编辑器
+    function openImageEditor(id) {
+      closeModal();
+      setTimeout(() => {
+        const img = state.images.find(i => i.id === id);
+        if (!img) return;
+        
+        state.editingImageId = id;
+        state.editingImageSrc = img.src;
+        state.editorCrop = { x: 0, y: 0, width: 100, height: 100 };
+        state.editorRotation = 0;
+        state.editorBrightness = 100;
+        state.editorContrast = 100;
+        
+        showModal('编辑图片', `
+          <div style="text-align: center;">
+            <canvas id="editor-canvas" style="max-width: 100%; max-height: 350px; border: 1px solid var(--border); border-radius: 8px;"></canvas>
+          </div>
+          <div style="margin-top: 16px;">
+            <div class="form-group">
+              <label>旋转</label>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm" onclick="rotateImage(-90)">左转90°</button>
+                <button class="btn btn-sm" onclick="rotateImage(90)">右转90°</button>
+                <button class="btn btn-sm" onclick="rotateImage(180)">旋转180°</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>亮度: <span id="brightness-value">100</span>%</label>
+              <input type="range" id="brightness-slider" min="50" max="150" value="100" style="width: 100%;" oninput="updateBrightness(this.value)">
+            </div>
+            <div class="form-group">
+              <label>对比度: <span id="contrast-value">100</span>%</label>
+              <input type="range" id="contrast-slider" min="50" max="150" value="100" style="width: 100%;" oninput="updateContrast(this.value)">
+            </div>
+            <div class="form-group">
+              <label>裁剪</label>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-sm" onclick="setCrop('square')">正方形</button>
+                <button class="btn btn-sm" onclick="setCrop('16:9')">16:9</button>
+                <button class="btn btn-sm" onclick="setCrop('4:3')">4:3</button>
+                <button class="btn btn-sm" onclick="setCrop('free')">自由</button>
+                <button class="btn btn-sm" onclick="resetCrop()">重置</button>
+              </div>
+            </div>
+          </div>
+        `, [
+          { text: '取消', class: 'btn' },
+          { text: '保存', class: 'btn btn-primary', onclick: 'saveEditedImage()' }
+        ]);
+        
+        // 初始化编辑器
+        initImageEditor();
+      }, 100);
+    }
+    
+    // 初始化图片编辑器
+    function initImageEditor() {
+      const canvas = document.getElementById('editor-canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        state.editorOriginalImage = img;
+        state.editorOriginalWidth = img.width;
+        state.editorOriginalHeight = img.height;
+        state.editorCrop = { x: 0, y: 0, width: img.width, height: img.height };
+        renderEditorCanvas();
+      };
+      img.src = state.editingImageSrc;
+    }
+    
+    // 渲染编辑器画布
+    function renderEditorCanvas() {
+      const canvas = document.getElementById('editor-canvas');
+      const ctx = canvas.getContext('2d');
+      const img = state.editorOriginalImage;
+      if (!img) return;
+      
+      const crop = state.editorCrop;
+      const rotation = state.editorRotation;
+      
+      // 计算画布大小
+      const maxSize = 350;
+      const scale = Math.min(maxSize / crop.width, maxSize / crop.height, 1);
+      canvas.width = crop.width * scale;
+      canvas.height = crop.height * scale;
+      
+      // 应用旋转
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(rotation * Math.PI / 180);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      
+      // 应用滤镜
+      ctx.filter = `brightness(${state.editorBrightness}%) contrast(${state.editorContrast}%)`;
+      
+      // 绘制裁剪区域
+      ctx.drawImage(img, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
+      
+      ctx.restore();
+    }
+    
+    // 旋转图片
+    function rotateImage(degrees) {
+      state.editorRotation = (state.editorRotation + degrees) % 360;
+      renderEditorCanvas();
+    }
+    
+    // 更新亮度
+    function updateBrightness(value) {
+      state.editorBrightness = parseInt(value);
+      document.getElementById('brightness-value').textContent = value;
+      renderEditorCanvas();
+    }
+    
+    // 更新对比度
+    function updateContrast(value) {
+      state.editorContrast = parseInt(value);
+      document.getElementById('contrast-value').textContent = value;
+      renderEditorCanvas();
+    }
+    
+    // 设置裁剪比例
+    function setCrop(ratio) {
+      const img = state.editorOriginalImage;
+      if (!img) return;
+      
+      const w = img.width;
+      const h = img.height;
+      
+      if (ratio === 'square') {
+        const size = Math.min(w, h);
+        state.editorCrop = { x: (w - size) / 2, y: (h - size) / 2, width: size, height: size };
+      } else if (ratio === '16:9') {
+        const targetH = w * 9 / 16;
+        const actualH = Math.min(targetH, h);
+        state.editorCrop = { x: 0, y: (h - actualH) / 2, width: w, height: actualH };
+      } else if (ratio === '4:3') {
+        const targetH = w * 3 / 4;
+        const actualH = Math.min(targetH, h);
+        state.editorCrop = { x: 0, y: (h - actualH) / 2, width: w, height: actualH };
+      } else {
+        state.editorCrop = { x: 0, y: 0, width: w, height: h };
+      }
+      
+      renderEditorCanvas();
+    }
+    
+    // 重置裁剪
+    function resetCrop() {
+      const img = state.editorOriginalImage;
+      if (!img) return;
+      
+      state.editorCrop = { x: 0, y: 0, width: img.width, height: img.height };
+      state.editorRotation = 0;
+      state.editorBrightness = 100;
+      state.editorContrast = 100;
+      
+      document.getElementById('brightness-slider').value = 100;
+      document.getElementById('contrast-slider').value = 100;
+      document.getElementById('brightness-value').textContent = '100';
+      document.getElementById('contrast-value').textContent = '100';
+      
+      renderEditorCanvas();
+    }
+    
+    // 保存编辑后的图片
+    async function saveEditedImage() {
+      const canvas = document.getElementById('editor-canvas');
+      const img = state.images.find(i => i.id === state.editingImageId);
+      if (!img) return;
+      
+      // 获取编辑后的图片数据
+      const editedData = canvas.toDataURL('image/png');
+      
+      try {
+        const res = await fetch('/api/upload/common', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: img.filename, imageData: editedData })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          closeModal();
+          await loadCommonImages();
+          alert('保存成功！');
+        } else {
+          alert('保存失败：' + data.error);
+        }
+      } catch (err) {
+        alert('保存出错：' + err.message);
+      }
+    }
+    
+    function toggleImageSelect(id) {
+      const img = state.images.find(i => i.id === id);
+      if (img) {
+        img.selected = !img.selected;
+        const card = document.querySelector(`.image-card[data-id="${id}"]`);
+        if (card) {
+          card.classList.toggle('selected', img.selected);
+          card.style.borderColor = img.selected ? 'var(--primary)' : 'var(--border)';
+          card.style.borderWidth = img.selected ? '2px' : '1px';
+          const checkbox = card.querySelector('.image-checkbox');
+          if (checkbox) {
+            checkbox.textContent = img.selected ? '✓' : '';
+          }
+        }
+      }
+    }
+    
+    function downloadImage(src, filename) {
+      const a = document.createElement('a');
+      a.href = src;
+      a.download = filename || 'image.png';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    
+    function selectAllImages() {
+      state.images.forEach(img => img.selected = true);
+      document.querySelectorAll('.image-card').forEach(card => {
+        card.classList.add('selected');
+        card.style.borderColor = 'var(--primary)';
+        card.style.borderWidth = '2px';
+        const checkbox = card.querySelector('.image-checkbox');
+        if (checkbox) checkbox.textContent = '✓';
+      });
+    }
+    
+    function clearImageSelection() {
+      state.images.forEach(img => img.selected = false);
+      document.querySelectorAll('.image-card').forEach(card => {
+        card.classList.remove('selected');
+        card.style.borderColor = 'var(--border)';
+        card.style.borderWidth = '1px';
+        const checkbox = card.querySelector('.image-checkbox');
+        if (checkbox) checkbox.textContent = '';
+      });
+    }
+    
+    async function deleteSelectedImages() {
+      const selected = state.images.filter(i => i.selected);
+      if (selected.length === 0) {
+        alert('请先选择要删除的图片');
+        return;
+      }
+      
+      if (!confirm(`确定删除选中的 ${selected.length} 张图片？此操作不可恢复！`)) {
+        return;
+      }
+      
+      let deleted = 0;
+      let failed = [];
+      
+      for (const img of selected) {
+        try {
+          const res = await fetch(`/api/upload/common/${encodeURIComponent(img.filename)}`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (data.success) {
+            deleted++;
+          } else {
+            failed.push(img.filename);
+          }
+        } catch (e) {
+          failed.push(img.filename);
+        }
+      }
+      
+      if (deleted > 0) {
+        alert(`成功删除 ${deleted} 张图片`);
+        // 刷新图片列表
+        if (state.currentDate === 'common') {
+          await loadCommonImages();
+        } else {
+          await loadImages(state.currentDate);
+        }
+      }
+      
+      if (failed.length > 0) {
+        alert(`删除失败: ${failed.join(', ')}`);
+      }
+    }
+    
+    // ============ 广告管理 ============
+    async function renderAds(position) {
+      const content = document.getElementById('page-content');
+      content.innerHTML = `<div class="loading">加载中...</div>`;
+      
+      try {
+        const res = await fetch('/api/ads');
+        const data = await res.json();
+        
+        if (data.success) {
+          state.ads = data.data.ads;
+        }
+        
+        const ad = state.ads[position];
+        
+        content.innerHTML = `
+          <div class="ad-preview" id="ad-preview-${position}">
+            ${ad.image ? `<img src="${ad.image}" class="ad-image-preview" style="max-width:100%;max-height:120px;border-radius:6px;margin-bottom:12px;">` : ''}
+            <h4>${ad.product_name}</h4>
+            <div class="price">¥${ad.price} <small style="color: rgba(255,255,255,0.5); font-size: 16px;">原价 ¥${ad.original_price}</small></div>
+            <p style="margin-bottom: 8px;">${ad.description}</p>
+            <ul class="features">
+              ${ad.features.map(f => `<li>${f}</li>`).join('')}
+            </ul>
+            ${ad.gift ? `<div class="gift">${ad.gift}</div>` : ''}
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <h3>编辑广告内容</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>产品图片</label>
+                <div class="ad-image-upload ${ad.image ? 'has-image' : ''}" onclick="uploadAdImage('${position}')">
+                  ${ad.image 
+                    ? `<img src="${ad.image}" class="ad-image-preview"><p style="margin-top:8px;color:var(--text-light);font-size:12px;">点击更换图片</p>`
+                    : `<p style="color:var(--text-light);">点击上传产品图片</p>`
+                  }
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>产品名称</label>
+                <input type="text" id="ad-product-name" value="${ad.product_name}" onchange="updateAdPreview()">
+              </div>
+              
+              <div class="form-group">
+                <label>产品描述</label>
+                <textarea id="ad-description" rows="2" onchange="updateAdPreview()">${ad.description}</textarea>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label>现价</label>
+                  <input type="text" id="ad-price" value="${ad.price}" onchange="updateAdPreview()">
+                </div>
+                <div class="form-group">
+                  <label>原价</label>
+                  <input type="text" id="ad-original-price" value="${ad.original_price}" onchange="updateAdPreview()">
+                </div>
+              </div>
+              
+              <div class="ad-form-section">
+                <h4>产品特点（每行一个）</h4>
+                <div class="feature-list" id="feature-list">
+                  ${ad.features.map((f, i) => `
+                    <div class="feature-item" data-index="${i}">
+                      <input type="text" value="${f}" onchange="updateFeature(${i}, this.value)">
+                      <button class="btn btn-sm btn-danger" onclick="removeFeature(${i})">删除</button>
+                    </div>
+                  `).join('')}
+                </div>
+                <button class="btn btn-sm" onclick="addFeature()" style="margin-top: 8px;">添加特点</button>
+              </div>
+              
+              <div class="form-group">
+                <label>赠品/优惠信息</label>
+                <input type="text" id="ad-gift" value="${ad.gift || ''}" onchange="updateAdPreview()">
+              </div>
+              
+              <div class="form-group">
+                <label>购买链接</label>
+                <input type="text" id="ad-buy-link" value="${ad.buy_link}">
+              </div>
+              
+              <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="saveAds('${position}')">保存配置</button>
+                <button class="btn" onclick="resetAds('${position}')">重置</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<div class="empty-state"><h4>加载失败</h4><p>${e.message}</p></div>`;
+      }
+    }
+    
+    function updateAdPreview() {
+      const position = state.currentPage.replace('ads-', '');
+      const ad = state.ads[position];
+      if (!ad) return;
+      
+      const preview = document.getElementById(`ad-preview-${position}`);
+      if (preview) {
+        const name = document.getElementById('ad-product-name')?.value || ad.product_name;
+        const desc = document.getElementById('ad-description')?.value || ad.description;
+        const price = document.getElementById('ad-price')?.value || ad.price;
+        const origPrice = document.getElementById('ad-original-price')?.value || ad.original_price;
+        const gift = document.getElementById('ad-gift')?.value || ad.gift;
+        
+        preview.innerHTML = `
+          ${ad.image ? `<img src="${ad.image}" class="ad-image-preview" style="max-width:100%;max-height:120px;border-radius:6px;margin-bottom:12px;">` : ''}
+          <h4>${name}</h4>
+          <div class="price">¥${price} <small style="color: rgba(255,255,255,0.5); font-size: 16px;">原价 ¥${origPrice}</small></div>
+          <p style="margin-bottom: 8px;">${desc}</p>
+          <ul class="features">
+            ${ad.features.map(f => `<li>${f}</li>`).join('')}
+          </ul>
+          ${gift ? `<div class="gift">${gift}</div>` : ''}
+        `;
+      }
+    }
+    
+    function uploadAdImage(position) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const imageData = event.target.result;
+          state.ads[position].image = imageData;
+          renderAds(position);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+    
+    function updateFeature(index, value) {
+      if (state.ads[state.currentPage.replace('ads-', '')]) {
+        state.ads[state.currentPage.replace('ads-', '')].features[index] = value;
+      }
+    }
+    
+    function removeFeature(index) {
+      const position = state.currentPage.replace('ads-', '');
+      if (state.ads[position]) {
+        state.ads[position].features.splice(index, 1);
+        renderAds(position);
+      }
+    }
+    
+    function addFeature() {
+      const position = state.currentPage.replace('ads-', '');
+      if (state.ads[position]) {
+        state.ads[position].features.push('✨ 新特点');
+        renderAds(position);
+      }
+    }
+    
+    async function saveAds(position) {
+      const oldAd = state.ads[position];
+      const ad = {
+        product_name: document.getElementById('ad-product-name').value,
+        description: document.getElementById('ad-description').value,
+        image: oldAd?.image || null,
+        price: document.getElementById('ad-price').value,
+        original_price: document.getElementById('ad-original-price').value,
+        features: Array.from(document.querySelectorAll('#feature-list input')).map(i => i.value),
+        gift: document.getElementById('ad-gift').value,
+        buy_link: document.getElementById('ad-buy-link').value
+      };
+      
+      state.ads[position] = ad;
+      
+      try {
+        const res = await fetch('/api/ads', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ads: state.ads })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('广告配置已保存');
+        } else {
+          alert('保存失败：' + data.error);
+        }
+      } catch (e) {
+        alert('保存失败：' + e.message);
+      }
+    }
+    
+    function resetAds(position) {
+      renderAds(position);
+    }
+    
+    // ============ 爬虫任务 ============
+    async function renderCrawler() {
+      const content = document.getElementById('page-content');
+      
+      content.innerHTML = `
+        <div class="crawler-status">
+          <div class="status-icon">🕷️</div>
+          <div class="status-text">
+            <h4>爬虫状态：${state.crawlerStatus === 'running' ? '运行中' : '待命'}</h4>
+            <span>${state.crawlerStatus === 'running' ? '正在爬取最新文章...' : '点击按钮启动爬虫'}</span>
+          </div>
+          <button class="btn btn-primary" onclick="runCrawler()">启动爬虫</button>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3>爬虫配置</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>目标公众号 URL</label>
+              <input type="text" value="https://mp.weixin.qq.com/s/..." placeholder="微信文章链接">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>爬取频率</label>
+                <select>
+                  <option>每日一次</option>
+                  <option>每12小时</option>
+                  <option>每6小时</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>自动发布</label>
+                <select>
+                  <option>手动发布</option>
+                  <option>自动发布</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3>运行历史</h3>
+          </div>
+          <div class="card-body">
+            <div class="crawler-history">
+              ${state.articles.slice(0, 10).map((a, i) => `
+                <div class="history-item">
+                  <div class="history-time">${formatDate(a.created_at)}</div>
+                  <div class="history-result">爬取文章：${a.date}</div>
+                  <span class="history-status tag tag-success">成功</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // ============ 设置页面 ============
+    function renderSettings() {
+      const content = document.getElementById('page-content');
+      
+      content.innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <h3>手动操作</h3>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--text-light); margin-bottom: 16px;">以下操作用于调试或补充爬取，日常使用建议依赖自动化任务。</p>
+            <div style="display: flex; gap: 12px;">
+              <button class="btn btn-primary" onclick="runCrawler()">手动启动爬虫</button>
+              <button class="btn" onclick="alert('自动化配置功能开发中...')">查看自动化状态</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3>自动化配置</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>爬取时间</label>
+                <select id="crawl-time">
+                  <option value="08:00">08:00</option>
+                  <option value="09:00">09:00</option>
+                  <option value="10:00">10:00</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>发布时间</label>
+                <select id="publish-time">
+                  <option value="12:00">12:00</option>
+                  <option value="18:00">18:00</option>
+                  <option value="20:00">20:00</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>自动发布条件</label>
+              <select id="publish-condition">
+                <option value="no-edit">用户未介入编辑时自动发布</option>
+                <option value="always">始终自动发布</option>
+                <option value="never">始终等待手动发布</option>
+              </select>
+            </div>
+            <p style="color: var(--text-light); font-size: 13px;">配置保存后，系统将在指定时间自动运行。</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3>模板素材</h3>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--text-light); margin-bottom: 12px;">当前启用的模板素材将自动插入到生成的文章中。</p>
+            <a class="btn" onclick="navigateTo('images')">管理模板素材</a>
+          </div>
+        </div>
+      `;
+    }
+    
+    async function runCrawler() {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '⏳ 运行中...';
+      state.crawlerStatus = 'running';
+      
+      try {
+        const res = await fetch('/api/crawler/run', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ 爬虫已启动，请稍后刷新查看结果');
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '启动爬虫';
+            state.crawlerStatus = 'idle';
+            if (state.currentPage === 'crawler') renderCrawler();
+            else navigateTo('dashboard');
+          }, 3000);
+        } else {
+          alert('❌ 启动失败：' + data.error);
+          btn.disabled = false;
+          btn.textContent = '启动爬虫';
+        }
+      } catch (e) {
+        alert('❌ 启动失败：' + e.message);
+        btn.disabled = false;
+        btn.textContent = '启动爬虫';
+      }
+    }
+    
+    // ============ 内容编辑器 ============
+    async function renderEditor() {
+      const content = document.getElementById('page-content');
+      
+      // 先加载文章列表
+      if (state.articles.length === 0) {
+        try {
+          const res = await fetch('/api/articles');
+          const data = await res.json();
+          if (data.success) {
+            state.articles = data.data;
+            sortArticlesByDate(); // 立即排序
+          }
+        } catch (e) {}
+      }
+      
+      content.innerHTML = `
+        <div class="editor-header" style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span>选择日期：</span>
+          <select id="month-select" onchange="onMonthChange(this.value)" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;">
+            <option value="">选择月份...</option>
+          </select>
+          <select id="date-select" onchange="loadContent(this.value)" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;" disabled>
+            <option value="">选择日期...</option>
+          </select>
+          <button class="btn btn-sm btn-primary" onclick="saveContent()">保存</button>
+          <button class="btn btn-sm btn-outline" onclick="previewEditedPage()">预览</button>
+          <button class="btn btn-sm" onclick="showExportModal()" style="background:#10b981;color:#fff;border-color:#10b981;">导出HTML</button>
+          <button class="btn btn-sm" onclick="addNewSection()" style="color:#c00000;">末尾加章节</button>
+          <button class="btn btn-sm" onclick="addNewParagraph()">末尾加段落</button>
+        </div>
+
+        <div class="editor-container">
+          <div class="edit-panel">
+            <div class="edit-stats">
+              <span>📊 共 <strong id="item-count">0</strong> 项</span>
+              <span><strong id="image-count">0</strong> 张图片</span>
+              <span><strong id="char-count">0</strong> 字</span>
+              <span style="margin-left:auto;color:#6b7280;font-size:11px;">💡 拖拽 ⋮⋮ 可排序</span>
+            </div>
+
+            <div class="content-list" id="content-list">
+              <div class="empty-state">请选择日期加载内容</div>
+            </div>
+          </div>
+
+          <div class="preview-panel">
+            <div class="preview-header">
+              <span>实时预览</span>
+              <button class="btn btn-sm" onclick="refreshPreview()">刷新</button>
+            </div>
+            <div class="preview-content">
+              <div class="preview-article">
+                <iframe id="preview-frame" class="preview-frame"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 初始化月份选择器
+      initMonthSelect();
+      
+      // 如果已有选中的日期，直接加载内容
+      if (state.currentDate) {
+        const m = state.currentDate.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        if (m) {
+          const month = `${m[1]}-${m[3].padStart(2, '0')}`;
+          document.getElementById('month-select').value = month;
+          onMonthChange(month); // 加载该月份的日期选项
+          // 立即设置日期并加载内容
+          setTimeout(() => {
+            const dateSelect = document.getElementById('date-select');
+            if (dateSelect) {
+              dateSelect.value = state.currentDate;
+              loadContent(state.currentDate);
+            }
+          }, 50);
+        }
+      }
+    }
+    
+    // 初始化月份选择器
+    function initMonthSelect() {
+      const monthSelect = document.getElementById('month-select');
+      // 从 "2026年4月13日" 提取 "2026-04" 格式
+      const months = [...new Set(state.articles.map(a => {
+        const m = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        return m ? `${m[1]}-${m[3].padStart(2, '0')}` : '';
+      }).filter(Boolean))].sort().reverse();
+      monthSelect.innerHTML = '<option value="">选择月份...</option>' + 
+        months.map(m => `<option value="${m}">${m}</option>`).join('');
+    }
+    
+    // 月份改变时更新日期选择器
+    function onMonthChange(month) {
+      const dateSelect = document.getElementById('date-select');
+      if (!month) {
+        dateSelect.disabled = true;
+        dateSelect.innerHTML = '<option value="">选择日期...</option>';
+        return;
+      }
+      
+      // 筛选该月份的日期
+      const dates = state.articles.filter(a => {
+        const m = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        return m && `${m[1]}-${m[3].padStart(2, '0')}` === month;
+      }).sort((a, b) => {
+        const m1 = a.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        const m2 = b.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+        return (m2 ? parseInt(m2[5]) : 0) - (m1 ? parseInt(m1[5]) : 0);
+      });
+      dateSelect.disabled = false;
+      dateSelect.innerHTML = '<option value="">选择日期...</option>' + 
+        dates.map(d => {
+          const m = d.date.match(/(\d+)(年)(\d+)(月)(\d+)(日)/);
+          return `<option value="${d.date}">${m ? m[5] : d.date}</option>`;
+        }).join('');
+    }
+    
+    async function runCrawlerFromEditor() {
+      try {
+        const res = await fetch('/api/crawler/run', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ 爬虫已启动，请稍后刷新页面');
+        }
+      } catch (e) {
+        alert('❌ 启动失败');
+      }
+    }
+    
+    async function loadContent(date) {
+      if (!date) return;
+      state.currentDate = date;
+      
+      const list = document.getElementById('content-list');
+      list.innerHTML = `<div class="loading">加载中...</div>`;
+      
+      try {
+        // 加载文本内容
+        const res = await fetch(`/api/articles/${date}`);
+        const data = await res.json();
+        
+        // 加载图片配置
+        let imageConfig = [];
+        try {
+          const imgRes = await fetch(`/output/${date}/images.json`);
+          if (imgRes.ok) {
+            imageConfig = await imgRes.json();
+          }
+        } catch (e) {}
+        
+        // 加载HTML内容（用于获取图片位置）
+        let htmlContent = '';
+        try {
+          const htmlRes = await fetch(`/output/${date}/完整版.html`);
+          if (htmlRes.ok) {
+            htmlContent = await htmlRes.text();
+          }
+        } catch (e) {}
+        
+        // 优先使用 content 字段，如果没有则用 text 字段
+        const textContent = data.data.content || data.data.text;
+        
+        if (data.success && textContent) {
+          state.contentItems = parseContentWithImages(textContent, htmlContent, date, imageConfig);
+          renderContentList();
+          refreshPreview();
+        } else {
+          list.innerHTML = `<div class="empty-state"><h4>无内容</h4><p>该文章没有数据</p></div>`;
+        }
+      } catch (e) {
+        list.innerHTML = `<div class="empty-state"><h4>加载失败</h4><p>${e.message}</p></div>`;
+      }
+    }
+    
+    function parseContentWithImages(text, html, date, imageConfig) {
+      const items = [];
+      let order = 0;
+      
+      // 直接从 HTML 解析内容顺序（保持图片真实位置）
+      if (html) {
+        // 提取内容区域
+        const contentMatch = html.match(/<div class="content">([\s\S]*?)<\/div>\s*<div class="footer"/);
+        const contentHtml = contentMatch ? contentMatch[1] : html;
+        
+        // 解析段落和图片（按真实顺序）
+        const paragraphRegex = /<p[^>]*>([\s\S]*?)<\/p>/g;
+        // 匹配新闻配图（images/目录）和副标题图片（../common/目录）
+        const imgRegex = /<img[^>]+src="(images\/(image_\d+\.(jpg|png|gif))|..\/common\/([^"]+))"[^>]*>/g;
+        
+        // 合并所有元素并按位置排序
+        const elements = [];
+        let pMatch, iMatch;
+        
+        // 找所有段落
+        while ((pMatch = paragraphRegex.exec(contentHtml)) !== null) {
+          const pContent = pMatch[1].replace(/<[^>]+>/g, '').trim();
+          if (pContent && !pContent.includes('冯站长特惠') && !pContent.includes('新西兰进口') &&
+              !pContent.includes('北大博士团队') && !pContent.includes('点击图片购买')) {
+            elements.push({
+              type: 'text',
+              content: pContent,
+              index: pMatch.index
+            });
+          }
+        }
+        
+        // 找所有图片（包括副标题图片）
+        paragraphRegex.lastIndex = 0;
+        while ((iMatch = imgRegex.exec(contentHtml)) !== null) {
+          const src = iMatch[1];
+          if (src.startsWith('images/')) {
+            // 新闻配图
+            elements.push({
+              type: 'image',
+              filename: iMatch[2],
+              src: `/output/${date}/images/${iMatch[2]}`,
+              index: iMatch.index
+            });
+          } else if (src.startsWith('../common/')) {
+            // 副标题图片（封面、章节标题等）
+            elements.push({
+              type: 'subtitle',
+              filename: iMatch[4],
+              src: `/output/common/${iMatch[4]}`,
+              index: iMatch.index
+            });
+          }
+        }
+        
+        // 按位置排序
+        elements.sort((a, b) => a.index - b.index);
+        
+        // 转换为 items
+        elements.forEach(el => {
+          if (el.type === 'text') {
+            // 判断是章节标题还是新闻条目
+            const isSection = el.content.includes('国内新闻') || el.content.includes('国际新闻') ||
+                             el.content.includes('财经新闻') || el.content.includes('文体新闻') ||
+                             el.content.includes('本地新闻') || el.content.includes('健康养生') ||
+                             el.content.includes('文教新闻') || el.content.includes('社会新闻');
+            
+            items.push({
+              id: `item-${Date.now()}-${order++}`,
+              type: isSection ? 'section' : 'news',
+              content: el.content.replace(/[▼▲]/g, '').trim(),
+              selected: false,
+              editing: false
+            });
+          } else if (el.type === 'subtitle') {
+            // 副标题图片
+            items.push({
+              id: `item-subtitle-${Date.now()}-${order++}`,
+              type: 'subtitle',
+              src: el.src,
+              filename: el.filename,
+              selected: false
+            });
+          } else if (el.type === 'image') {
+            items.push({
+              id: `item-img-${Date.now()}-${order++}`,
+              type: 'image',
+              src: el.src,
+              filename: el.filename,
+              selected: false
+            });
+          }
+        });
+        
+        return items;
+      }
+      
+      // 如果没有 HTML，使用纯文本（备用）
+      const lines = text.split('\n').filter(l => l.trim());
+      lines.forEach((line) => {
+        const trimmed = line.trim();
+        if (trimmed.includes('冯站长特惠') || trimmed.includes('新西兰进口') ||
+            trimmed.includes('北大博士团队') || trimmed.includes('点击图片购买')) {
+          return;
+        }
+        const isSection = trimmed.includes('国内新闻') || trimmed.includes('国际新闻') ||
+                         trimmed.includes('财经新闻') || trimmed.includes('文体新闻') ||
+                         trimmed.includes('本地新闻') || trimmed.includes('健康养生');
+        items.push({
+          id: `item-${Date.now()}-${order++}`,
+          type: isSection ? 'section' : 'news',
+          content: trimmed.replace(/[▼▲]/g, '').trim(),
+          selected: false,
+          editing: false
+        });
+      });
+      
+      return items;
+    }
+    
+    function renderContentList() {
+      const list = document.getElementById('content-list');
+
+      if (state.contentItems.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <h4>暂无内容</h4>
+            <p>点击下方按钮添加内容</p>
+          </div>
+          <div class="add-buttons">
+            <button class="btn" onclick="addSection()">添加章节</button>
+            <button class="btn" onclick="addNewsItem()">添加新闻</button>
+            <button class="btn" onclick="addImageAtEnd()">添加图片</button>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = `<div class="drag-hint">⋮⋮ 拖拽左侧手柄可调整段落顺序</div>`
+        + state.contentItems.map((item, index) => renderItem(item, index)).join('')
+        + `<div class="add-buttons">
+            <button class="btn" onclick="addSection()">＋ 章节</button>
+            <button class="btn" onclick="addNewsItem()">＋ 新闻</button>
+            <button class="btn" onclick="addImageAtEnd()">＋ 本地图片</button>
+            <button class="btn btn-primary" onclick="addImageFromLibrary()">从图片库选择</button>
+          </div>`;
+      bindDragEvents();
+      updateStats();
+    }
+    
+    // 从图片库选择图片
+    function addImageFromLibrary() {
+      // 保存当前编辑器状态
+      state.insertMode = true;
+      // 跳转到图片管理
+      navigateTo('images');
+      alert('请在图片管理中选择图片，然后点击"插入编辑器"按钮');
+    }
+    
+    // 保存编辑后的内容
+    async function saveContent() {
+      if (!state.currentDate) {
+        alert('请先选择日期');
+        return;
+      }
+      
+      // 将 contentItems 转换为文本和 HTML
+      let textContent = '';
+      let htmlContent = '';
+      
+      state.contentItems.forEach(item => {
+        if (item.type === 'section') {
+          textContent += `${item.content}\n\n`;
+          htmlContent += `<p class="section-title">${item.content}</p>\n`;
+        } else if (item.type === 'subtitle') {
+          // 副标题图片：输出为 title-image 格式
+          let imgSrc = item.src;
+          if (item.src.includes('/common/')) {
+            imgSrc = '../common/' + item.src.split('/common/').pop();
+          }
+          htmlContent += `<div class="title-image">\n              <img src="${imgSrc}" class="section-title-img">\n            </div>\n`;
+        } else if (item.type === 'news') {
+          textContent += `${item.content}\n\n`;
+          htmlContent += `<p>${item.content}</p>\n`;
+        } else if (item.type === 'image') {
+          const width = item.width || 100;
+          const align = item.align || 'center';
+          const caption = item.caption || '';
+          // 正确提取图片相对路径：/output/日期/images/xxx.jpg → images/xxx.jpg
+          let imgSrc = item.src;
+          if (item.src.includes('/images/')) {
+            imgSrc = 'images/' + item.src.split('/images/').pop();
+          }
+          htmlContent += `<img src="${imgSrc}" style="max-width: ${width}%; display: block; margin: 15px ${align === 'center' ? 'auto' : align === 'left' ? '0 auto 0 0' : '0 0 auto'};">\n`;
+          if (caption) {
+            htmlContent += `<p style="font-size: 12px; color: #999; text-align: center;">${caption}</p>\n`;
+          }
+        } else if (item.type === 'ad') {
+          // 广告项：输出广告 HTML
+          const ad = state.ads[item.position] || {};
+          if (ad.product_name && ad.buy_link !== '#商品链接') {
+            htmlContent += generateAdHtml(ad);
+          }
+        }
+      });
+      
+      try {
+        // 获取广告配置
+        let adsData = { ads: {} };
+        try {
+          const adsRes = await fetch('/api/ads');
+          const adsJson = await adsRes.json();
+          if (adsJson.success) adsData = adsJson;
+        } catch (e) {}
+        state.ads = adsData.ads || {};
+        
+        // 获取原始 HTML 模板结构
+        const originalRes = await fetch(`/output/${state.currentDate}/完整版.html`);
+        let originalHtml = '';
+        if (originalRes.ok) {
+          originalHtml = await originalRes.text();
+        }
+        
+        // 生成广告 HTML（如果没有在编辑器中添加广告项，则自动插入）
+        const topAd = state.ads.top;
+        const bottomAd = state.ads.bottom;
+        const hasTopAdInContent = state.contentItems.some(i => i.type === 'ad' && i.position === 'top');
+        const hasBottomAdInContent = state.contentItems.some(i => i.type === 'ad' && i.position === 'bottom');
+        
+        // 在开头插入顶部广告（如果配置了且编辑器中没有）
+        if (topAd && topAd.product_name && topAd.buy_link !== '#商品链接' && !hasTopAdInContent) {
+          htmlContent = generateAdHtml(topAd) + '\n' + htmlContent;
+        }
+        
+        // 在结尾插入底部广告（如果配置了且编辑器中没有）
+        if (bottomAd && bottomAd.product_name && bottomAd.buy_link !== '#商品链接' && !hasBottomAdInContent) {
+          htmlContent += '\n' + generateAdHtml(bottomAd);
+        }
+        
+        // 替换内容区域
+        let finalHtml = originalHtml;
+        const contentMatch = originalHtml.match(/<div class="content">([\s\S]*?)<\/div>\s*<div class="footer"/);
+        if (contentMatch) {
+          finalHtml = originalHtml.replace(
+            /<div class="content">([\s\S]*?)<\/div>\s*<div class="footer"/,
+            `<div class="content">\n${htmlContent}</div>\n<div class="footer"`
+          );
+        }
+        
+        // 保存到服务器
+        const res = await fetch(`/api/articles/${state.currentDate}/content`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: textContent, html: finalHtml })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ 保存成功');
+          // 刷新预览
+          refreshPreview();
+        } else {
+          alert('❌ 保存失败: ' + data.error);
+        }
+      } catch (e) {
+        alert('❌ 保存失败: ' + e.message);
+      }
+    }
+    
+    // 生成广告 HTML
+    function generateAdHtml(ad) {
+      if (!ad || !ad.product_name) return '';
+      
+      let featuresHtml = '';
+      if (ad.features && ad.features.length > 0) {
+        featuresHtml = ad.features.map(f => `<li>${f}</li>`).join('\n');
+      }
+      
+      return `
+<div class="promo-card">
+  ${ad.image ? `<div style="text-align: center; margin-bottom: 15px;"><img src="${ad.image}" style="max-width: 100%; max-height: 180px; border-radius: 8px;"></div>` : ''}
+  <div class="product-name">${ad.product_name}</div>
+  <div class="product-desc">${ad.description || ''}</div>
+  ${featuresHtml ? `<ul class="product-features">${featuresHtml}</ul>` : ''}
+  <div class="price">¥${ad.price || '0'} <span class="original">¥${ad.original_price || '0'}</span></div>
+  ${ad.gift ? `<div class="gift">${ad.gift}</div>` : ''}
+  <a href="${ad.buy_link || '#'}" class="buy-btn">立即购买</a>
+</div>`;
+    }
+    
+    // 预览编辑后的页面（先保存，再打开）
+    async function previewEditedPage() {
+      if (!state.currentDate) {
+        alert('请先选择日期');
+        return;
+      }
+      
+      // 先保存当前内容
+      await saveContent();
+      
+      // 打开编辑后的 HTML 页面
+      window.open(`/output/${state.currentDate}/完整版.html`, '_blank');
+    }
+    
+    function addImageAtEnd() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          state.contentItems.push({
+            id: `item-${Date.now()}`,
+            type: 'image',
+            src: event.target.result,
+            filename: file.name,
+            selected: false
+          });
+          renderContentList();
+          refreshPreview();
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+    
+    function renderItem(item, index) {
+      const typeLabels = { section: '章节', news: '新闻', image: '图片', subtitle: '副标题', ad: '广告' };
+      const typeIcons = { section: '', news: '', image: '', subtitle: '📋', ad: '' };
+      
+      let contentHtml = '';
+      let actionsHtml = '';
+      
+      if (item.type === 'section') {
+        contentHtml = item.editing 
+          ? `<input type="text" value="${item.content}" style="font-weight: bold; color: #c00000; font-size: 16px; width: 100%;" oninput="updateItem('${item.id}', this.value)">` 
+          : `<strong style="color: #c00000; font-size: 16px;">${item.content}</strong>`;
+        actionsHtml = `
+          <button class="btn-icon" onclick="startEditing('${item.id}')" title="编辑">编</button>
+          <button class="btn-icon" onclick="insertSectionAfter('${item.id}')" title="在下方插入章节" style="color:#c00000;">章</button>
+          <button class="btn-icon" onclick="insertParagraphAfter('${item.id}')" title="在下方插入段落">段</button>
+          <button class="btn-icon" onclick="insertImageAfter('${item.id}')" title="在下方插入图片">图</button>
+          <button class="btn-icon" onclick="deleteItem('${item.id}')" title="删除">删</button>
+        `;
+      } else if (item.type === 'subtitle') {
+        contentHtml = `
+          <div style="position: relative; display: inline-block; width: 100%;">
+            <div style="text-align: center; background: #fef3c7; padding: 8px; border-radius: 4px; border: 1px solid #f59e0b;">
+              <img src="${item.src}" style="max-width: 100%; max-height: 80px; border-radius: 4px;">
+            </div>
+            <div style="font-size: 11px; color: #92400e; margin-top: 4px; text-align: center;">
+              📋 副标题图片: ${item.filename}
+            </div>
+          </div>
+        `;
+        actionsHtml = `
+          <button class="btn-icon" onclick="replaceSubtitleImage('${item.id}')" title="替换副标题">换</button>
+          <button class="btn-icon" onclick="deleteItem('${item.id}')" title="删除">删</button>
+        `;
+      } else if (item.type === 'image') {
+        const width = item.width || 100;
+        const align = item.align || 'center';
+        const caption = item.caption || '';
+        contentHtml = `
+          <div style="position: relative; display: inline-block; width: 100%;">
+            <div style="text-align: ${align};">
+              <img src="${item.src}" style="max-width: ${width}%; max-height: 200px; border-radius: 4px; cursor: pointer; border: 2px solid #eee;" onclick="showImageEditor('${item.id}')">
+            </div>
+            ${caption ? `<div style="font-size: 12px; color: var(--text-light); text-align: center; margin-top: 4px;">${caption}</div>` : ''}
+            <div style="font-size: 11px; color: var(--text-light); margin-top: 4px;">
+              ${item.filename || '图片'} | 宽度: ${width}% | 对齐: ${align === 'left' ? '左' : align === 'right' ? '右' : '居中'}
+            </div>
+          </div>
+        `;
+        actionsHtml = `
+          <button class="btn-icon" onclick="showImageEditor('${item.id}')" title="编辑">编</button>
+          <button class="btn-icon" onclick="insertSectionAfter('${item.id}')" title="在下方插入章节" style="color:#c00000;">章</button>
+          <button class="btn-icon" onclick="insertParagraphAfter('${item.id}')" title="在下方插入段落">段</button>
+          <button class="btn-icon" onclick="insertImageAfter('${item.id}')" title="在下方插入图片">图</button>
+          <button class="btn-icon" onclick="replaceContentImage('${item.id}')" title="替换">换</button>
+          <button class="btn-icon" onclick="deleteItem('${item.id}')" title="删除">删</button>
+        `;
+      } else if (item.type === 'ad') {
+        contentHtml = `<span style="color: #ffd700; font-weight: bold;">${item.content || '广告位'}</span>`;
+        actionsHtml = `
+          <button class="btn-icon" onclick="deleteItem('${item.id}')" title="删除">删</button>
+        `;
+      } else {
+        contentHtml = item.editing 
+          ? `<textarea rows="3" style="width: 100%;" oninput="updateItem('${item.id}', this.value)">${item.content}</textarea>` 
+          : `<span style="cursor: pointer; line-height: 1.6;" onclick="startEditing('${item.id}')">${item.content}</span>`;
+        actionsHtml = `
+          <button class="btn-icon" onclick="startEditing('${item.id}')" title="编辑">编</button>
+          <button class="btn-icon" onclick="insertSectionAfter('${item.id}')" title="在下方插入章节" style="color:#c00000;">章</button>
+          <button class="btn-icon" onclick="insertParagraphAfter('${item.id}')" title="在下方插入段落">段</button>
+          <button class="btn-icon" onclick="insertImageAfter('${item.id}')" title="在下方插入图片">图</button>
+          <button class="btn-icon" onclick="deleteItem('${item.id}')" title="删除">删</button>
+        `;
+      }
+      
+      return `
+        <div class="content-item ${item.selected ? 'selected' : ''}" 
+             data-id="${item.id}" 
+             draggable="true"
+             ondragstart="event.dataTransfer.setData('text/plain', '${item.id}')">
+          <div class="drag-handle" title="拖拽排序">⋮⋮</div>
+          
+          <div class="item-type">
+            <span class="type-badge ${item.type}">${typeLabels[item.type]}</span>
+            <span>#${index + 1}</span>
+          </div>
+          
+          <div class="item-content ${item.editing ? 'editing' : ''}">
+            ${contentHtml}
+          </div>
+          
+          <div class="item-actions">
+            ${actionsHtml}
+          </div>
+        </div>
+      `;
+    }
+    
+    // 在指定项后插入章节
+    function insertSectionAfter(id) {
+      const index = state.contentItems.findIndex(i => i.id === id);
+      if (index >= 0) {
+        const newSection = {
+          id: `item-${Date.now()}`,
+          type: 'section',
+          content: '',
+          editing: true,
+          selected: false
+        };
+        state.contentItems.splice(index + 1, 0, newSection);
+        renderContentList();
+        refreshPreview();
+      }
+    }
+    
+    // 在指定项后插入段落
+    function insertParagraphAfter(id) {
+      const index = state.contentItems.findIndex(i => i.id === id);
+      if (index >= 0) {
+        const newParagraph = {
+          id: `item-${Date.now()}`,
+          type: 'news',
+          content: '',
+          editing: true,
+          selected: false
+        };
+        state.contentItems.splice(index + 1, 0, newParagraph);
+        renderContentList();
+        refreshPreview();
+      }
+    }
+    
+    // 在指定项后插入图片
+    function insertImageAfter(id) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const index = state.contentItems.findIndex(i => i.id === id);
+          if (index >= 0) {
+            const newImage = {
+              id: `item-${Date.now()}`,
+              type: 'image',
+              src: event.target.result,
+              filename: file.name,
+              selected: false
+            };
+            state.contentItems.splice(index + 1, 0, newImage);
+            renderContentList();
+            refreshPreview();
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+    
+    // 替换内容编辑器中的图片
+    function replaceContentImage(id) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const item = state.contentItems.find(i => i.id === id);
+          if (item) {
+            item.src = event.target.result;
+            item.filename = file.name;
+            renderContentList();
+            refreshPreview();
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+    
+    // 替换副标题图片
+    async function replaceSubtitleImage(id) {
+      const item = state.contentItems.find(i => i.id === id);
+      if (!item) return;
+      
+      // 弹出选择对话框
+      showModal('替换副标题图片', `
+        <div style="padding: 10px;">
+          <p style="margin-bottom: 10px;">当前副标题: <strong>${item.filename}</strong></p>
+          <div style="text-align: center; margin-bottom: 15px;">
+            <img src="${item.src}" style="max-width: 100%; max-height: 100px; border-radius: 4px;">
+          </div>
+          <p style="margin-bottom: 8px;">选择新的副标题图片:</p>
+          <select id="new-subtitle-select" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border);">
+            <option value="">-- 从素材库选择 --</option>
+          </select>
+          <div style="margin-top: 10px; text-align: center;">
+            <button class="btn btn-sm" onclick="document.getElementById('subtitle-file-input').click()">上传新图片</button>
+            <input type="file" id="subtitle-file-input" accept="image/*" style="display: none;" onchange="handleSubtitleUpload(this.files[0], '${id}')">
+          </div>
+        </div>
+      `, [
+        { text: '取消', class: 'btn', onclick: 'closeModal()' },
+        { text: '替换', class: 'btn btn-primary', onclick: `confirmReplaceSubtitle('${id}')` }
+      ]);
+      
+      // 加载通用图片库列表
+      try {
+        const res = await fetch('/api/upload/common/list');
+        const data = await res.json();
+        if (data.success) {
+          const select = document.getElementById('new-subtitle-select');
+          data.data.forEach(img => {
+            const opt = document.createElement('option');
+            opt.value = img.filename;
+            opt.textContent = img.filename;
+            select.appendChild(opt);
+          });
+        }
+      } catch (e) {}
+    }
+    
+    // 处理副标题图片上传
+    function handleSubtitleUpload(file, id) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        // 上传到通用图片库
+        fetch('/api/upload/common', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, imageData: event.target.result })
+        }).then(res => res.json()).then(data => {
+          if (data.success) {
+            document.getElementById('new-subtitle-select').value = data.filename;
+            // 添加新选项
+            const select = document.getElementById('new-subtitle-select');
+            if (!select.querySelector(`option[value="${data.filename}"]`)) {
+              const opt = document.createElement('option');
+              opt.value = data.filename;
+              opt.textContent = data.filename;
+              select.appendChild(opt);
+              select.value = data.filename;
+            }
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // 确认替换副标题
+    async function confirmReplaceSubtitle(id) {
+      const select = document.getElementById('new-subtitle-select');
+      const filename = select.value;
+      if (!filename) {
+        alert('请选择或上传图片');
+        return;
+      }
+      
+      const item = state.contentItems.find(i => i.id === id);
+      if (item) {
+        item.filename = filename;
+        item.src = `/output/common/${filename}`;
+        renderContentList();
+        refreshPreview();
+      }
+      closeModal();
+    }
+    
+    // 显示图片编辑器
+    function showImageEditor(id) {
+      const item = state.contentItems.find(i => i.id === id);
+      if (!item) return;
+      
+      const width = item.width || 100;
+      const align = item.align || 'center';
+      const caption = item.caption || '';
+      
+      showModal('图片编辑', `
+        <div style="text-align: center; margin-bottom: 16px;">
+          <img src="${item.src}" id="image-preview" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+        </div>
+        <div class="form-group">
+          <label>图片宽度</label>
+          <input type="range" id="image-width" min="30" max="100" value="${width}" 
+                 oninput="document.getElementById('width-value').textContent = this.value + '%'; updateImagePreview()">
+          <span id="width-value" style="margin-left: 10px;">${width}%</span>
+        </div>
+        <div class="form-group">
+          <label>对齐方式</label>
+          <select id="image-align" onchange="updateImagePreview()">
+            <option value="left" ${align === 'left' ? 'selected' : ''}>左对齐</option>
+            <option value="center" ${align === 'center' ? 'selected' : ''}>居中</option>
+            <option value="right" ${align === 'right' ? 'selected' : ''}>右对齐</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>图片说明</label>
+          <input type="text" id="image-caption" value="${caption}" placeholder="可选：添加图片说明">
+        </div>
+        <div class="form-group">
+          <label>替换图片</label>
+          <input type="file" id="replace-image-input" accept="image/*">
+        </div>
+      `, [
+        { text: '取消', class: 'btn' },
+        { text: '保存', class: 'btn btn-primary', onclick: `saveImageEdit('${id}')` }
+      ]);
+    }
+    
+    function updateImagePreview() {
+      const preview = document.getElementById('image-preview');
+      const width = document.getElementById('image-width').value;
+      
+      if (preview) {
+        preview.style.maxWidth = width + '%';
+      }
+    }
+    
+    async function saveImageEdit(id) {
+      const item = state.contentItems.find(i => i.id === id);
+      if (!item) return;
+      
+      // 保存编辑属性
+      item.width = parseInt(document.getElementById('image-width').value);
+      item.align = document.getElementById('image-align').value;
+      item.caption = document.getElementById('image-caption').value;
+      
+      // 检查是否需要替换图片
+      const fileInput = document.getElementById('replace-image-input');
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('读取失败'));
+          reader.readAsDataURL(file);
+        });
+        item.src = base64;
+        item.filename = file.name;
+      }
+      
+      closeModal();
+      renderContentList();
+      refreshPreview();
+    }
+    
+    function bindDragEvents() {
+      document.querySelectorAll('.content-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', e.target.dataset.id);
+        });
+        item.addEventListener('dragover', (e) => e.preventDefault());
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const dragId = e.dataTransfer.getData('text/plain');
+          const dropId = item.dataset.id;
+          if (dragId !== dropId) reorderItems(dragId, dropId);
+        });
+      });
+    }
+    
+    function reorderItems(dragId, dropId) {
+      const dragIndex = state.contentItems.findIndex(i => i.id === dragId);
+      const dropIndex = state.contentItems.findIndex(i => i.id === dropId);
+      if (dragIndex > -1 && dropIndex > -1) {
+        const [removed] = state.contentItems.splice(dragIndex, 1);
+        state.contentItems.splice(dropIndex, 0, removed);
+        renderContentList();
+        refreshPreview();
+      }
+    }
+    
+    function updateStats() {
+      document.getElementById('item-count').textContent = state.contentItems.length;
+      document.getElementById('image-count').textContent = state.contentItems.filter(i => i.type === 'image').length;
+      document.getElementById('char-count').textContent = state.contentItems.reduce((sum, i) => sum + (i.content?.length || 0), 0);
+    }
+    
+    function toggleSelect(id) {
+      const item = state.contentItems.find(i => i.id === id);
+      if (item) {
+        item.selected = !item.selected;
+        renderContentList();
+      }
+    }
+    
+    function startEditing(id) {
+      state.contentItems.forEach(i => i.editing = false);
+      const item = state.contentItems.find(i => i.id === id);
+      if (item) {
+        item.editing = true;
+        renderContentList();
+      }
+    }
+    
+    function stopEditing(id) {
+      const item = state.contentItems.find(i => i.id === id);
+      if (item) {
+        item.editing = false;
+        refreshPreview();
+      }
+    }
+    
+    function updateItem(id, value) {
+      const item = state.contentItems.find(i => i.id === id);
+      if (item) {
+        item.content = value;
+        updateStats();
+        refreshPreview(); // 实时更新预览
+      }
+    }
+    
+    function deleteItem(id) {
+      state.contentItems = state.contentItems.filter(i => i.id !== id);
+      renderContentList();
+      refreshPreview();
+    }
+    
+    function deleteSelected() {
+      const selected = state.contentItems.filter(i => i.selected);
+      if (selected.length === 0) {
+        alert('请先选择要删除的项目');
+        return;
+      }
+      if (confirm(`确定删除选中的 ${selected.length} 项？`)) {
+        state.contentItems = state.contentItems.filter(i => !i.selected);
+        renderContentList();
+        refreshPreview();
+      }
+    }
+    
+    function moveSelectedUp() {
+      const index = state.contentItems.findIndex(i => i.selected);
+      if (index <= 0) return alert('无法上移');
+      [state.contentItems[index - 1], state.contentItems[index]] = [state.contentItems[index], state.contentItems[index - 1]];
+      renderContentList();
+      refreshPreview();
+    }
+    
+    function moveSelectedDown() {
+      const index = state.contentItems.findIndex(i => i.selected);
+      if (index < 0 || index >= state.contentItems.length - 1) return alert('无法下移');
+      [state.contentItems[index], state.contentItems[index + 1]] = [state.contentItems[index + 1], state.contentItems[index]];
+      renderContentList();
+      refreshPreview();
+    }
+    
+    function addSection() {
+      state.contentItems.push({
+        id: `item-${Date.now()}`,
+        type: 'section',
+        content: '新章节',
+        selected: false,
+        editing: true
+      });
+      renderContentList();
+    }
+    
+    function addNewsItem() {
+      state.contentItems.push({
+        id: `item-${Date.now()}`,
+        type: 'news',
+        content: '在此输入新闻内容...',
+        selected: false,
+        editing: true
+      });
+      renderContentList();
+    }
+    
+    function insertImage() {
+      if (!state.currentDate || state.images.length === 0) {
+        alert('请先在图片管理页面加载图片');
+        return;
+      }
+      
+      const selected = state.images.filter(i => i.selected);
+      if (selected.length === 0) {
+        alert('请先选择图片（在图片管理页面）');
+        return;
+      }
+      
+      selected.forEach(img => {
+        state.contentItems.push({
+          id: `item-${Date.now()}-${Math.random()}`,
+          type: 'image',
+          src: img.src,
+          content: img.filename,
+          selected: false
+        });
+      });
+      
+      renderContentList();
+      refreshPreview();
+    }
+    
+    function insertAd() {
+      state.contentItems.push({
+        id: `item-${Date.now()}`,
+        type: 'ad',
+        content: 'iPhone 17 Pro Max',
+        selected: false
+      });
+      renderContentList();
+      refreshPreview();
+    }
+    
+    function refreshPreview() {
+      const frame = document.getElementById('preview-frame');
+      if (!frame) return;
+      
+      // 如果有选中的日期，生成实时预览
+      if (state.currentDate && state.currentDate !== 'common') {
+        // 根据当前编辑内容生成预览HTML
+        const previewHtml = generatePreviewHtml();
+        frame.srcdoc = previewHtml;
+      }
+    }
+    
+    // 生成预览HTML（基于当前编辑内容）
+    function generatePreviewHtml() {
+      let contentHtml = '';
+      
+      state.contentItems.forEach(item => {
+        if (item.type === 'section') {
+          contentHtml += `<p class="section-title" style="color: #c00000; font-weight: bold; font-size: 18px; margin: 20px 0 10px;">${item.content}</p>\n`;
+        } else if (item.type === 'subtitle') {
+          // 副标题图片：使用绝对路径（srcdoc iframe 基础URL是当前页面）
+          let imgSrc = item.src;
+          // 确保 srcdoc 中的 iframe 能正确加载图片（使用完整绝对路径）
+          contentHtml += `<div style="text-align: center; margin: 15px 0;"><img src="${imgSrc}" style="max-width: 100%;"></div>\n`;
+        } else if (item.type === 'news') {
+          contentHtml += `<p style="margin: 10px 0; line-height: 1.8;">${item.content}</p>\n`;
+        } else if (item.type === 'image') {
+          const width = item.width || 100;
+          const align = item.align || 'center';
+          const caption = item.caption || '';
+          // 图片：保持原始路径（srcdoc 需要绝对路径才能正确加载）
+          let imgSrc = item.src;
+          // 如果是 data: URL（本地上传的），直接使用
+          // 如果是服务器路径，保持绝对路径
+          contentHtml += `<div style="text-align: ${align}; margin: 15px 0;"><img src="${imgSrc}" style="max-width: ${width}%;"></div>\n`;
+          if (caption) {
+            contentHtml += `<p style="font-size: 12px; color: #999; text-align: center;">${caption}</p>\n`;
+          }
+        }
+      });
+      
+      return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 20px; max-width: 677px; margin: 0 auto; background: #fff; }
+    p { margin: 10px 0; line-height: 1.8; }
+    img { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="content">
+    ${contentHtml}
+  </div>
+</body>
+</html>`;
+    }
+    
+    // ============ 模态框 ============
+    function showModal(title, content, buttons) {
+      document.getElementById('modal-container').innerHTML = `
+        <div class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>${title}</h3>
+              <button class="close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">${content}</div>
+            <div class="modal-footer">${buttons.map(b => `<button class="${b.class}" onclick="${b.onclick || 'closeModal()'}">${b.text}</button>`).join('')}</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function closeModal() {
+      document.getElementById('modal-container').innerHTML = '';
+    }
+    
+    // ============ 导出功能 ============
+    function showExportModal() {
+      if (!state.currentDate) {
+        alert('请先选择日期');
+        return;
+      }
+      
+      showModal('导出 HTML', `
+        <div class="export-modal-content">
+          <div class="export-option" onclick="exportSingleHTML()">
+            <div class="export-option-icon">📄</div>
+            <div class="export-option-info">
+              <h4>导出当前日期</h4>
+              <p>导出 ${state.currentDate} 的完整 HTML 文件</p>
+            </div>
+          </div>
+          <div class="export-option" onclick="showBatchExport()">
+            <div class="export-option-icon">📦</div>
+            <div class="export-option-info">
+              <h4>批量导出</h4>
+              <p>选择日期范围，批量导出多日新闻</p>
+            </div>
+          </div>
+        </div>
+      `, [{ text: '取消', class: 'btn', onclick: 'closeModal()' }]);
+    }
+    
+    async function exportSingleHTML() {
+      closeModal();
+      
+      // 先保存当前内容
+      await saveContent();
+      
+      // 获取 HTML 内容
+      try {
+        const res = await fetch(`/output/${state.currentDate}/完整版.html`);
+        if (!res.ok) {
+          alert('导出失败：无法获取 HTML 内容');
+          return;
+        }
+        
+        const html = await res.text();
+        
+        // 创建下载
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${state.currentDate}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert('✅ 导出成功！');
+      } catch (e) {
+        alert('导出失败：' + e.message);
+      }
+    }
+    
+    function showBatchExport() {
+      closeModal();
+      
+      // 获取所有可选日期
+      const dates = state.articles.map(a => a.date).sort().reverse();
+      
+      showModal('批量导出', `
+        <div class="export-modal-content">
+          <div class="form-group">
+            <label>选择日期（勾选要导出的日期）</label>
+            <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 10px;">
+              ${dates.map(d => `
+                <div style="padding: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
+                  <input type="checkbox" id="export-${d}" value="${d}">
+                  <label for="export-${d}" style="cursor: pointer;">${d}</label>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div id="export-progress" style="display: none;">
+            <div class="export-progress">
+              <div class="export-progress-bar" id="export-progress-bar" style="width: 0%"></div>
+            </div>
+            <p id="export-status" style="margin-top: 8px; font-size: 13px; color: var(--text-light);">准备导出...</p>
+          </div>
+        </div>
+      `, [
+        { text: '取消', class: 'btn', onclick: 'closeModal()' },
+        { text: '开始导出', class: 'btn btn-primary', onclick: 'startBatchExport()' }
+      ]);
+    }
+    
+    async function startBatchExport() {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="export-"]:checked');
+      const selectedDates = Array.from(checkboxes).map(cb => cb.value);
+      
+      if (selectedDates.length === 0) {
+        alert('请选择要导出的日期');
+        return;
+      }
+      
+      document.getElementById('export-progress').style.display = 'block';
+      const progressBar = document.getElementById('export-progress-bar');
+      const statusText = document.getElementById('export-status');
+      
+      let completed = 0;
+      const total = selectedDates.length;
+      
+      for (const date of selectedDates) {
+        try {
+          const res = await fetch(`/output/${date}/完整版.html`);
+          if (res.ok) {
+            const html = await res.text();
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${date}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        } catch (e) {
+          console.error(`导出 ${date} 失败:`, e);
+        }
+        
+        completed++;
+        progressBar.style.width = `${(completed / total) * 100}%`;
+        statusText.textContent = `已导出 ${completed}/${total}...`;
+        
+        // 等待一小段时间避免浏览器阻止多个下载
+        await new Promise(r => setTimeout(r, 500));
+      }
+      
+      statusText.textContent = `✅ 完成！已导出 ${completed} 个文件`;
+      setTimeout(closeModal, 2000);
+    }
+    
+    // ============ 新增段落功能 ============
+    function addNewParagraph() {
+      const newId = `item-${Date.now()}`;
+      state.contentItems.push({
+        id: newId,
+        type: 'news',
+        content: '',
+        editing: true,
+        selected: false
+      });
+      renderContentList();
+    }
+    
+    function addNewSection() {
+      const newId = `item-${Date.now()}`;
+      state.contentItems.push({
+        id: newId,
+        type: 'section',
+        content: '',
+        editing: true,
+        selected: false
+      });
+      renderContentList();
+    }
+    
+    // 初始化
+    navigateTo('dashboard');
+  </script>
+</body>
+</html>

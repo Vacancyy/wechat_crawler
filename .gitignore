@@ -1,0 +1,11 @@
+node_modules/
+data/
+*.db
+*.db-wal
+*.db-shm
+output/
+.DS_Store
+config/auto_crawl_config.json
+images/
+*.bak
+*.bak2

@@ -1,0 +1,190 @@
+{
+  "version": "1.0",
+  "name": "谢站长之家新闻模板",
+  "description": "用于爬取和发布谢站长之家每日新闻",
+  "templateAssets": {
+    "header": {
+      "enabled": true,
+      "filename": "新闻封面.png",
+      "description": "文章头部封面图"
+    },
+    "subtitle": {
+      "enabled": true,
+      "subtitles": {
+        "A": {
+          "enabled": true,
+          "filename": "A_国内.png",
+          "name": "国内"
+        },
+        "B": {
+          "enabled": true,
+          "filename": "B_国际.png",
+          "name": "国际"
+        },
+        "C": {
+          "enabled": true,
+          "filename": "C_财经.png",
+          "name": "财经"
+        },
+        "D": {
+          "enabled": true,
+          "filename": "D_体育.png",
+          "name": "体育"
+        },
+        "E": {
+          "enabled": true,
+          "filename": "E_社会.png",
+          "name": "社会"
+        },
+        "F": {
+          "enabled": true,
+          "filename": "F_其他.png",
+          "name": "其他"
+        }
+      }
+    },
+    "divider": {
+      "enabled": true,
+      "filename": "健康养生.png",
+      "description": "章节分割线"
+    },
+    "footer": {
+      "enabled": false,
+      "filename": null,
+      "description": "底部Logo或二维码"
+    }
+  },
+  "imageFilter": {
+    "skipSmall": {
+      "enabled": true,
+      "minSizeKB": 15,
+      "description": "跳过小于15KB的小图片（通常是装饰图标）"
+    },
+    "skipTitleImage": {
+      "enabled": true,
+      "rules": [
+        {
+          "name": "扁平标题图",
+          "condition": "width > 300 && width/height > 2",
+          "description": "宽高比大于2:1的扁平图（如章节标题）"
+        }
+      ]
+    },
+    "skipQRCode": {
+      "enabled": true,
+      "rules": [
+        {
+          "name": "正方形二维码",
+          "condition": "width > 700 && height > 700 && ratio >= 0.8 && ratio <= 1.2",
+          "description": "接近正方形的大尺寸图片（通常是二维码）"
+        }
+      ]
+    },
+    "skipPromo": {
+      "enabled": true,
+      "rules": [
+        {
+          "name": "推广封面图",
+          "condition": "width >= 500 && width <= 800 && width/height > 3",
+          "description": "500-800像素宽的扁平推广图"
+        }
+      ]
+    },
+    "skipBeforeNumbering": {
+      "enabled": true,
+      "description": "跳过编号开始前的图片（通常是主页封面）"
+    }
+  },
+  "textFilter": {
+    "skipPromoKeywords": {
+      "enabled": true,
+      "keywords": [
+        "全场95折",
+        "年卡",
+        "优惠券",
+        "医疗晨报",
+        "历史上的今天",
+        "每周一曲",
+        "一日一诗",
+        "晚间新闻",
+        "扫码",
+        "二维码",
+        "客服",
+        "防失联",
+        "冯站长之家",
+        "推广",
+        "广告",
+        "免费试用",
+        "退退退",
+        "炳济堂",
+        "老黑膏",
+        "非遗",
+        "河北老字号",
+        "限时活动",
+        "元/贴",
+        "多赠",
+        "无条件退",
+        "骨痛问题",
+        "膏药",
+        "贴2-3天",
+        "颈椎僵硬",
+        "腰椎酸痛",
+        "牙齿松动",
+        "牙龈出血",
+        "口臭异味",
+        "牙黄牙黑",
+        "敏感疼痛",
+        "一定要试试",
+        "叶黄素",
+        "蓝莓精华",
+        "护眼黑科技",
+        "原装进口",
+        "贴了层",
+        "阻隔蓝光",
+        "黄金防护膜",
+        "护眼营养素"
+      ],
+      "description": "包含这些关键词的文本段落会被跳过"
+    },
+    "minLength": {
+      "enabled": true,
+      "minChars": 10,
+      "description": "跳过少于10个字符的短文本"
+    },
+    "skipFooterPatterns": {
+      "enabled": true,
+      "patterns": [
+        "来源：新华",
+        "来源:新华",
+        "熊苗营养师",
+        "编辑：冯站长",
+        "编辑:冯站长",
+        "播音：黄欢",
+        "播音:黄欢"
+      ]
+    }
+  },
+  "adReplace": {
+    "enabled": true,
+    "configFile": "config/ad_config.json",
+    "description": "在原文广告位置替换为自定义广告"
+  },
+  "output": {
+    "templateFile": "templates/news_template.html",
+    "outputDir": "output",
+    "filenamePattern": "{date}/完整版.html",
+    "commonDir": "output/common"
+  },
+  "autoPublish": {
+    "enabled": false,
+    "schedule": {
+      "time": "08:00",
+      "timezone": "Asia/Shanghai"
+    },
+    "target": {
+      "platform": "wechat",
+      "description": "自动发布到微信公众号（需配置API）"
+    },
+    "description": "爬取完成后自动发布（当前未启用）"
+  }
+}

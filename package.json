@@ -1,0 +1,18 @@
+{
+  "name": "wechat-crawler",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "crawl": "node fetch_news.mjs",
+    "init-db": "node init-db.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.6",
+    "edge-tts": "^1.0.1",
+    "express": "^5.2.1",
+    "pptxgenjs": "^4.0.1",
+    "puppeteer-core": "^24.40.0"
+  }
+}

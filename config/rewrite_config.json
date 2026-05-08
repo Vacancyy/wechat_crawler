@@ -1,0 +1,27 @@
+{
+  "enabled": false,
+  "provider": "bailian",
+  "providers": {
+    "bailian": {
+      "description": "阿里百炼 GLM-5",
+      "endpoint": "https://coding.dashscope.aliyuncs.com/v1/chat/completions",
+      "model": "glm-5"
+    },
+    "openclaw": {
+      "description": "使用 OpenClaw 内置模型",
+      "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
+      "model": "glm-5"
+    },
+    "moonshot": {
+      "description": "月之暗面 Kimi",
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "model": "moonshot-v1-8k",
+      "apiKey": ""
+    }
+  },
+  "options": {
+    "preserveNumbers": true,
+    "preserveNames": true,
+    "style": "news"
+  }
+}
