@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "name": "谢站长之家新闻模板",
-  "description": "用于爬取和发布谢站长之家每日新闻",
+  "name": "每日资讯早餐模板",
+  "description": "用于爬取和发布每日资讯早餐内容",
   "templateAssets": {
     "header": {
       "enabled": true,

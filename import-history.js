@@ -52,7 +52,7 @@ async function importHistory() {
     // 创建文章
     const articleId = createArticle({
       date: dateDir,
-      title: `【冯站长之家】${dateDir}（${weekdayStr}）三分钟新闻早餐`,
+      title: `${dateDir}（${weekdayStr}）三分钟资讯早餐`,
       content: text,
       html_path: htmlPath,
       text_path: textPath,

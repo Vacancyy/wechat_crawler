@@ -60,7 +60,7 @@ async function uploadAudio(token, filePath, dateStr) {
   const formData = new FormData();
   const fileContent = await fs.readFile(filePath);
   // 文件名带日期标识，方便在素材库中识别
-  const fileName = `新闻播报_${dateStr}.mp3`;
+  const fileName = `资讯播报_${dateStr}.mp3`;
   formData.append('media', new Blob([fileContent]), fileName);
   
   const res = await fetch(`${WECHAT_API}/material/add_material?access_token=${token}&type=voice`, {
@@ -364,9 +364,9 @@ ${features}
   
   console.log('\n=== 构建微信文章数据 ===');
   const article = {
-    title: `【谢站长之家】${dateStr}三分钟新闻早餐`,
+    title: `${dateStr}三分钟资讯早餐`,
     author: '公众号运营系统',
-    digest: '每日新闻速递，国内外热点一览',
+    digest: '每日资讯速递，国内外热点一览',
     content: html,
     content_source_url: '',
     thumb_media_id: coverId,
@@ -383,7 +383,7 @@ ${features}
   console.log('📋 接下来请手动操作：');
   console.log('  1. 登录 mp.weixin.qq.com');
   console.log('  2. 草稿箱 → 打开今天的草稿');
-  console.log('  3. 点击🎵音频按钮 → 从素材库选择「新闻播报_' + dateStr + '.mp3」');
+  console.log('  3. 点击🎵音频按钮 → 从素材库选择「资讯播报_' + dateStr + '.mp3」');
   console.log('  4. 插入音频 → 点击发布');
   console.log('');
 }
