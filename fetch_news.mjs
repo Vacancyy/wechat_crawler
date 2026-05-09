@@ -468,7 +468,7 @@ async function main() {
   if (isAuto) {
     console.log(`🤖 自动爬取模式`);
     console.log(`📅 目标日期: ${dateInfo.dateStr} ${dateInfo.weekday}`);
-    console.log(`📋 目标文章: 三分钟资讯早餐`);
+    console.log(`📋 目标文章: 三分钟信息早餐`);
   } else if (articleUrl) {
     console.log(`🔗 直接爬取模式`);
     console.log(`📅 目标日期: ${dateInfo.dateStr} ${dateInfo.weekday}`);
@@ -509,7 +509,7 @@ async function main() {
       // 精确匹配：包含日期 + "三分钟新闻早餐"
       target = results.find(r => 
         r.title.includes(dateInfo.dateStr) && 
-        r.title.includes('三分钟新闻早餐') || r.title.includes('三分钟资讯早餐')
+        r.title.includes('三分钟新闻早餐') || r.title.includes('三分钟信息早餐')
       );
       
       if (!target) {
@@ -521,7 +521,7 @@ async function main() {
       }
       
       if (!target) {
-        console.log('❌ 未找到早间资讯早餐文章');
+        console.log('❌ 未找到早间信息早餐文章');
         console.log('  搜索结果:');
         results.slice(0, 5).forEach(r => console.log(`    - ${r.title}`));
         
@@ -540,7 +540,7 @@ async function main() {
           return;
         }
       } else {
-        console.log(`✅ 找到早间资讯: ${target.title}`);
+        console.log(`✅ 找到早间信息: ${target.title}`);
         targetLink = target.link;
         await searchPage.close();
       }
@@ -1102,7 +1102,7 @@ async function main() {
     // 创建文章记录
     const articleId = createArticle({
       date: dateInfo.dateStr,
-      title: `${dateInfo.dateStr}（${dateInfo.weekday}）三分钟资讯早餐`,
+      title: `${dateInfo.dateStr}（${dateInfo.weekday}）三分钟信息早餐`,
       content: plainText,
       html_path: path.join(outputDir, '完整版.html'),
       text_path: path.join(outputDir, '新闻内容.txt'),

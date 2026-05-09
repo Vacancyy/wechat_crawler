@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "name": "每日资讯早餐模板",
-  "description": "用于爬取和发布每日资讯早餐内容",
+  "name": "每日信息早餐模板",
+  "description": "用于爬取和发布每日信息早餐内容",
   "templateAssets": {
     "header": {
       "enabled": true,
