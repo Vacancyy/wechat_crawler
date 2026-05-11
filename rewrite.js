@@ -364,6 +364,99 @@ async function rewriteWithBailian(text, config) {
   }
 }
 
+// AI 广告检测（独立于改写功能）
+export async function detectAdsWithAI(texts) {
+  // 获取 API Key 和配置
+  const apiKey = await getApiKey('bailian', await loadRewriteConfig());
+  if (!apiKey) {
+    console.log('⚠ AI 广告检测：API Key 未配置，跳过');
+    return texts.map(() => false); // 全部标记为非广告
+  }
+  
+  const config = await loadRewriteConfig();
+  const endpoint = config.providers?.bailian?.endpoint || 'https://coding.dashscope.aliyuncs.com/v1/chat/completions';
+  const model = config.providers?.bailian?.model || 'glm-5';
+  
+  console.log(`\n🤖 AI 广告检测模式（${model}）`);
+  console.log(`📝 待检测段落：${texts.length} 段`);
+  
+  const results = new Array(texts.length).fill(false);
+  let adCount = 0;
+  
+  // 将所有段落合并为一次请求，更高效
+  const numberedTexts = texts.map((t, j) => `[段落${j + 1}] ${t}`).join('\n\n');
+  
+  const prompt = `判断以下每段文本是否是广告/推广/软文内容。广告特征包括但不限于：
+- 推销产品或服务（床垫、膏药、保健品、食品等）
+- 包含购买引导（点击购买、扫码咨询、下单等）
+- 促销优惠信息（限时、特惠、折扣、满减等）
+- 夸张功效承诺（科学助眠、深度睡眠提升、根治等）
+- 产品特性列表（双面两用、科学助眠、安心材质等）
+- 电商推广风格（✅列表、产品参数、品牌溯源）
+- 任何不是当天新闻事实的内容
+
+注意：新闻中的事实报道、政策法规、社会事件、健康小贴士、养生建议都不是广告，只有推销特定产品/服务的内容才是广告。
+
+${numberedTexts}
+
+请逐一判断，格式如下（每行一段）：
+段落X: AD（如果是广告）或 NEWS（如果是新闻）
+
+只输出判断结果，不要解释：`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 200,
+        temperature: 0.1
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content?.trim() || ''; 
+      
+      // 解析所有段落的结果
+      for (let j = 0; j < texts.length; j++) {
+        const paragraphNum = j + 1;
+        // 多种匹配模式
+        const patterns = [
+          new RegExp(`段落${paragraphNum}[^\n]*AD`, 'i'),
+          new RegExp(`${paragraphNum}\s*[:：]\s*AD`, 'i'),
+          new RegExp(`^AD`, 'i') // 简单格式
+        ];
+        
+        // 提取该段落的判断行
+        const lineMatch = content.split('\n').find(l => l.includes(`段落${paragraphNum}`) || l.includes(`${paragraphNum}:`) || l.includes(`${paragraphNum}：`));
+        if (lineMatch && /AD/i.test(lineMatch)) {
+          results[j] = true;
+          adCount++;
+          console.log(`  📢 段落${paragraphNum}: 广告 → ${texts[j].substring(0, 40)}...`);
+        }
+      }
+    } else {
+      console.log(`⚠ AI 广告检测 API 错误: ${response.status}`);
+    }
+  } catch (e) {
+    console.log(`⚠ AI 广告检测失败：${e.message}`);
+  }
+  
+  if (adCount > 0) {
+    console.log(`✅ AI 广告检测完成：发现 ${adCount} 段广告内容`);
+  } else {
+    console.log(`✅ AI 广告检测完成：未发现广告内容`);
+  }
+  
+  return results;
+}
+
 // 主改写函数
 export async function rewriteText(texts, onProgress) {
   const config = await loadRewriteConfig();

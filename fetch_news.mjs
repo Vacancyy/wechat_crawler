@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer-core';
 import fs from 'fs/promises';
 import path from 'path';
 import { createArticle, createImages, getArticleByDate, deleteArticle } from './server/db.js';
-import { rewriteTextsBatch } from './rewrite.js';
+import { rewriteTextsBatch, detectAdsWithAI } from './rewrite.js';
 import { generateAudio, embedAudioPlayer } from './generate_audio.mjs';
 
 const CDP_PORT = 18800;
@@ -985,7 +985,20 @@ async function main() {
     .map(i => i.text);
   
   // AI 改写（如果启用）
-  const rewrittenTexts = await rewriteTextsBatch(originalTexts, 1);
+  const rewriteConfig = JSON.parse(await fs.readFile('./config/rewrite_config.json', 'utf-8').catch(() => '{"enabled":false}'));
+  
+  let rewrittenTexts;
+  let aiAdFlags; // AI广告检测结果
+  
+  if (rewriteConfig.enabled) {
+    // 改写模式：改写+内置广告检测
+    rewrittenTexts = await rewriteTextsBatch(originalTexts, 1);
+    aiAdFlags = null; // 广告检测已在改写中完成
+  } else {
+    // 改写关闭：单独做AI广告检测
+    rewrittenTexts = originalTexts;
+    aiAdFlags = await detectAdsWithAI(originalTexts);
+  }
   
   // 在原始HTML基础上替换文本（保持图片位置不变）
   let finalHTML = newsHTML;
@@ -999,7 +1012,8 @@ async function main() {
       const rewrittenText = rewrittenTexts[textReplaceIndex] || originalText;
       
       // 如果AI判断是广告，删除这段文本
-      if (rewrittenText === '[AD_SKIP]') {
+      const isAiAd = aiAdFlags && aiAdFlags[textReplaceIndex];
+      if (rewrittenText === '[AD_SKIP]' || isAiAd) {
         // 在HTML中删除这段广告文本
         const escapedText = originalText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         finalHTML = finalHTML.replace(new RegExp(`<p class="news-item">${escapedText}</p>`), '');
@@ -1048,7 +1062,13 @@ async function main() {
     .replace(/\{\{generated_time\}\}/g, new Date().toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: 'long', day: 'numeric' }));
   
   // 生成纯文本（改写后，过滤广告）
-  const plainText = rewrittenTexts.filter(t => t !== '[AD_SKIP]').join('\n');
+  const plainText = rewrittenTexts
+    .map((t, i) => {
+      if (t === '[AD_SKIP]' || (aiAdFlags && aiAdFlags[i])) return null;
+      return t;
+    })
+    .filter(t => t !== null)
+    .join('\n');
   
   // 保存改写日志
   const rewriteLog = {

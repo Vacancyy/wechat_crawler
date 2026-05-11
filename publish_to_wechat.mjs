@@ -181,10 +181,35 @@ async function main() {
   // 上传图片并建立映射
   const imageMap = {};
   
-  console.log('\n=== 上传封面图片 ===');
-  const coverPath = `${commonDir}/新闻封面.png`;
-  const coverId = await uploadMaterial(token, coverPath, 'thumb');
-  console.log('封面media_id:', coverId);
+  // 封面图缓存：避免重复上传
+  const cachePath = `${baseDir}/../cover_cache.json`;
+  let coverId = null;
+  
+  console.log('\n=== 检查封面图缓存 ===');
+  try {
+    const cacheData = await fs.readFile(cachePath, 'utf-8');
+    const cache = JSON.parse(cacheData);
+    if (cache.coverMediaId && cache.date) {
+      // 缓存有效期30天（微信永久素材不会过期，但可能被删除）
+      const cacheAge = Date.now() - new Date(cache.date).getTime();
+      if (cacheAge < 30 * 24 * 60 * 60 * 1000) {
+        coverId = cache.coverMediaId;
+        console.log('使用缓存封面:', coverId);
+      }
+    }
+  } catch (e) {
+    console.log('无缓存文件');
+  }
+  
+  if (!coverId) {
+    console.log('\n=== 上传封面图片 ===');
+    const coverPath = `${commonDir}/新闻封面.png`;
+    coverId = await uploadMaterial(token, coverPath, 'thumb');
+    console.log('封面media_id:', coverId);
+    // 保存缓存
+    await fs.writeFile(cachePath, JSON.stringify({ coverMediaId: coverId, date: new Date().toISOString() }), 'utf-8');
+    console.log('封面缓存已保存');
+  }
   
   console.log('\n=== 上传内容图片 ===');
   for (const img of images) {
@@ -197,47 +222,91 @@ async function main() {
     }
   }
   
-  // 先移除标题和元信息（在样式转换之前，原始HTML中是 class="header"）
-  console.log('\n=== 移除标题和元信息 ===');
-  html = html.replace(/<div[^>]*class="header"[^>]*>.*?<\/div>/gs, '');
-  html = html.replace(/<div[^>]*class="meta"[^>]*>.*?<\/div>/gs, '');
-  console.log('标题和元信息已移除');
-  
-  // 移除分割线和audio标签
-  console.log('\n=== 移除分割线 ===');
-  html = html.replace(/<div[^>]*class="section-divider"[^>]*>.*?<\/div>/gs, '');
-  html = html.replace(/<hr[^>]*>/g, '');
-  html = html.replace(/<div[^>]*class="divider"[^>]*>.*?<\/div>/gs, '');
-  html = html.replace(/<audio[^>]*>.*?<\/audio>/gs, '');
-  console.log('分割线和audio已移除');
-  
-  // 移除广告内容（根据关键词过滤）
-  console.log('\n=== 移除广告内容 ===');
-  
-  // 移除 promo-card 整块（iPhone等广告卡片）
-  html = html.replace(/<div[^>]*class="promo-card"[^>]*>[\s\S]*?<\/div>\s*<\/div>/gi, '');
-  html = html.replace(/<section[^>]*class="promo-card"[^>]*>[\s\S]*?<\/section>/gi, '');
-  
-  // 移除音频播放器区域（🎧语音播报等）
-  html = html.replace(/<div[^>]*class="audio-player"[^>]*>[\s\S]*?<\/div>/gi, '');
-  html = html.replace(/<section[^>]*>[\s\S]*?🎧[\s\S]*?语音播报[\s\S]*?<\/section>/gi, '');
-  html = html.replace(/<div[^>]*>[\s\S]*?🎧[\s\S]*?语音播报[\s\S]*?<\/div>/gi, '');
-  
-  const promoKeywords = ['叶黄素', '蓝莓精华', '护眼黑科技', '原装进口', '黄金防护膜', '护眼营养素', '阻隔蓝光',
-    '炳济堂', '老黑膏', '膏药', '骨痛问题', '颈椎僵硬', '腰椎酸痛',
-    '牙齿松动', '牙龈出血', '口臭异味', '敏感疼痛', '一定要试试',
-    '优惠', '限时活动', '免费试用', '全场95折', '年卡', '多赠',
-    'iPhone', '立即购买', '限时特惠'];
-  
-  // 移除包含广告关键词的 <p> 段落
-  for (const keyword of promoKeywords) {
-    const regex = new RegExp(`<p[^>]*>[^<]*${keyword}[^<]*<\/p>`, 'gi');
-    html = html.replace(regex, '');
+  // ========== 关键修复：只提取 <div class="content"> 内部内容 ==========
+  console.log('\n=== 提取正文内容 ===');
+  const contentMatch = html.match(/<div[^>]*class="content"[^>]*>([\s\S]*?)<\/div>\s*<div[^>]*class="footer"/);
+  if (contentMatch) {
+    html = contentMatch[1].trim();
+    console.log('正文提取成功，长度:', html.length);
+  } else {
+    // fallback: 移除外层结构，只保留body内容
+    html = html.replace(/<![\s\S]*?>/g, '');
+    html = html.replace(/<html[^>]*>[\s\S]*?<body[^>]*>/gi, '');
+    html = html.replace(/<\/body>[\s\S]*?<\/html>/gi, '');
+    html = html.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+    console.log('fallback模式：移除HTML外壳');
   }
-  // 移除包含广告关键词的 <div> 块
+  
+  // ========== 通用移除函数：基于关键词定位块级元素并删除 ==========
+  function removeBlockContaining(text, keyword) {
+    let result = text;
+    let safety = 0;
+    while (safety < 20) {
+      const idx = result.indexOf(keyword);
+      if (idx === -1) break;
+      safety++;
+      
+      let searchStart = Math.max(0, idx - 2000);
+      const divPositions = [];
+      let p = searchStart;
+      while (p < idx) {
+        const di = result.indexOf('<div', p);
+        if (di === -1 || di >= idx) break;
+        divPositions.push(di);
+        p = di + 1;
+      }
+      
+      if (divPositions.length === 0) break;
+      
+      let removed = false;
+      for (const start of divPositions) {
+        let depth = 0;
+        let scanPos = start;
+        let end = -1;
+        while (scanPos < result.length) {
+          const nextOpen = result.indexOf('<div', scanPos);
+          const nextClose = result.indexOf('</div>', scanPos);
+          if (nextClose === -1) break;
+          if (nextOpen !== -1 && nextOpen < nextClose) {
+            depth++;
+            scanPos = nextOpen + 4;
+            continue;
+          }
+          depth--;
+          if (depth === 0) { end = nextClose + 6; break; }
+          scanPos = nextClose + 6;
+        }
+        if (end !== -1 && end > idx) {
+          result = result.substring(0, start) + result.substring(end);
+          removed = true;
+          break;
+        }
+      }
+      if (!removed) break;
+    }
+    return result;
+  }
+  
+  // 移除音频播放器
+  console.log('\n=== 移除音频播放器 ===');
+  html = removeBlockContaining(html, '🎧');
+  html = html.replace(/<audio[^>]*>[\s\S]*?<\/audio>/gs, '');
+  console.log('音频播放器已移除, 仍有🎧:', html.includes('🎧'));
+
+  // 移除广告卡片块
+  console.log('\n=== 移除广告内容 ===');
+  html = removeBlockContaining(html, 'promo-card');
+  html = removeBlockContaining(html, 'iPhone');
+  html = removeBlockContaining(html, '叶黄素');
+  html = removeBlockContaining(html, '炳济堂');
+  html = removeBlockContaining(html, '膏药');
+  html = removeBlockContaining(html, '牙齿松动');
+  html = removeBlockContaining(html, '蓝莓精华');
+  const promoKeywords = ['护眼黑科技', '原装进口', '黄金防护膜', '护眼营养素', '阻隔蓝光',
+    '骨痛问题', '颈椎僵硬', '腰椎酸痛', '牙龈出血', '口臭异味', '敏感疼痛', '一定要试试',
+    '限时特惠'];
   for (const keyword of promoKeywords) {
-    const regex = new RegExp(`<div[^>]*>[^<]*${keyword}[\s\S]*?<\/div>`, 'gi');
-    html = html.replace(regex, '');
+    html = html.replace(new RegExp(`<p[^>]*>[^<]*${keyword}[^<]*<\/p>`, 'gi'), '');
   }
   console.log('广告内容已移除');
 
@@ -245,11 +314,8 @@ async function main() {
   html = html.replace(/<p[^>]*>（来源[：:].*?）<\/p>/g, '');
   html = html.replace(/<p[^>]*>\(来源[：:].*?\)<\/p>/g, '');
   
-  // 转换样式为微信格式（移除style标签，转换为inline style）
+  // 转换样式为微信格式
   console.log('\n=== 转换样式为微信格式 ===');
-  
-  // 移除 <style> 标签（微信不支持）
-  html = html.replace(/<style[^>]*>.*?<\/style>/gs, '');
   
   // 定义样式映射
   const styleMap = {
@@ -293,6 +359,11 @@ async function main() {
     return match;
   });
   
+  // 移除所有残留的HTML外壳标签（确保只有内容片段）
+  html = html.replace(/<![\s\S]*?>/g, '');
+  html = html.replace(/<\/?(html|head|body|meta|title)[^>]*>/gi, '');
+  html = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gs, '');
+  
   console.log('样式转换完成');
   
   // 替换HTML中的图片路径为微信URL
@@ -302,34 +373,8 @@ async function main() {
   }
   console.log('图片路径替换完成');
   
-  // 将广告卡片重构为微信兼容格式（section + inline style）
-  console.log('\n=== 重构广告卡片 ===');
-  html = html.replace(/<div[^>]*class="promo-card"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g, (match, inner) => {
-    // 从内部提取内容
-    const nameM = inner.match(/<div[^>]*class="product-name"[^>]*>([\s\S]*?)<\/div>/);
-    const descM = inner.match(/<p[^>]*class="product-desc"[^>]*>([\s\S]*?)<\/p>/);
-    const featM = inner.match(/<ul[^>]*class="product-features"[^>]*>([\s\S]*?)<\/ul>/);
-    const priceM = inner.match(/<div[^>]*class="price"[^>]*>([\s\S]*?)<\/div>/);
-    const giftM = inner.match(/<p[^>]*class="gift"[^>]*>([\s\S]*?)<\/p>/);
-    const btnM = inner.match(/<a[^>]*class="buy-btn"[^>]*>([\s\S]*?)<\/a>/);
-    
-    const name = nameM ? nameM[1].trim() : '';
-    const desc = descM ? descM[1].trim() : '';
-    const features = featM ? featM[1].replace(/<li>/g, '<p style="font-size:14px;color:#ddd;margin:5px 0;">• ').replace(/<\/li>/g, '</p>') : '';
-    const price = priceM ? priceM[1].replace(/<span[^>]*class="original"[^>]*>([\s\S]*?)<\/span>/g, '<span style="text-decoration:line-through;color:#999;font-size:14px;">$1</span>') : '';
-    const gift = giftM ? giftM[1].trim() : '';
-    const btn = btnM ? btnM[1].trim() : '';
-    
-    return `<section style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:20px;border-radius:12px;margin:20px 0;color:#fff;">
-<p style="font-size:20px;font-weight:bold;margin:0 0 10px;">${name}</p>
-<p style="font-size:14px;color:#ccc;margin:0 0 15px;">${desc}</p>
-${features}
-<p style="font-size:24px;color:#ffd700;font-weight:bold;margin:15px 0;">${price}</p>
-<p style="font-size:13px;color:#aaa;margin:0 0 15px;">${gift}</p>
-<p style="text-align:center;"><span style="display:inline-block;padding:8px 25px;background:#ffd700;color:#1a1a2e;border-radius:20px;font-weight:bold;font-size:14px;">${btn}</span></p>
-</section>`;
-  });
-  console.log('广告卡片重构完成');
+  // 广告卡片已在前面移除，跳过重构
+  console.log('\n=== 跳过广告卡片重构（已移除）===');
   
   // 构建微信格式的文章数据
   // 上传音频并插入文章（必须在创建草稿之前）
@@ -361,6 +406,14 @@ ${features}
       console.log('音频同步失败:', err.message);
     }
   }
+  
+  // 保存处理后的HTML用于调试
+  const debugPath = `${baseDir}/wechat_content_debug.html`;
+  await fs.writeFile(debugPath, html, 'utf-8');
+  console.log('\n=== 调试：处理后HTML已保存 ===');
+  console.log('路径:', debugPath);
+  console.log('内容长度:', html.length);
+  console.log('内容预览(前500字):', html.substring(0, 500));
   
   console.log('\n=== 构建微信文章数据 ===');
   const article = {
